@@ -77,9 +77,9 @@ vim.opt.encoding = "UTF-8"                         -- Set encoding
 vim.opt.guicursor = "n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175"
 
 -- Folding settings
-vim.opt.foldmethod = "expr"                        -- Use expression for folding
-vim.opt.foldexpr = "nvim_treesitter#foldexpr()"    -- Use treesitter for folding
-vim.opt.foldlevel = 99                             -- Start with all folds open
+vim.opt.foldmethod = "expr"                             -- Use expression for folding
+vim.wo.vim.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- Use treesitter for folding
+vim.opt.foldlevel = 99                                  -- Start with all folds open
 
 -- Split behavior
 vim.opt.splitbelow = true                          -- Horizontal splits go below
@@ -92,17 +92,11 @@ vim.g.maplocalleader = " "                         -- Set local leader key (NEW)
 -- Normal mode mappings
 vim.keymap.set("n", "<leader>c", ":nohlsearch<CR>", { desc = "Clear search highlights" })
 
--- Y to EOL
-vim.keymap.set("n", "Y", "y$", { desc = "Yank to end of line" })
-
 -- Center screen when jumping
 vim.keymap.set("n", "n", "nzzzv", { desc = "Next search result (centered)" })
 vim.keymap.set("n", "N", "Nzzzv", { desc = "Previous search result (centered)" })
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Half page down (centered)" })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centered)" })
-
--- Better paste behavior
-vim.keymap.set("x", "<leader>p", '"_dP', { desc = "Paste without yanking" })
 
 -- Delete without yanking
 vim.keymap.set({ "n", "v" }, "<leader>d", '"_d', { desc = "Delete without yanking" })
