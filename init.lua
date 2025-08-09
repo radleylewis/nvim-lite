@@ -300,11 +300,10 @@ local function FloatingTerminal()
   })
 
   -- Set transparency for the floating window
-  vim.api.nvim_win_set_option(terminal_state.win, 'winblend', 0)
+  vim.api.nvim_set_option_value('winblend', 0, { win = terminal_state.win })
 
   -- Set transparent background for the window
-  vim.api.nvim_win_set_option(terminal_state.win, 'winhighlight',
-    'Normal:FloatingTermNormal,FloatBorder:FloatingTermBorder')
+  vim.api.nvim_set_option_value('winhighlight', 'Normal:FloatingTermNormal,FloatBorder:FloatingTermBorder', { win = terminal_state.win })
 
   -- Define highlight groups for transparency
   vim.api.nvim_set_hl(0, "FloatingTermNormal", { bg = "none" })
