@@ -1,10 +1,10 @@
 -- ================================================================================================
 -- title : Suckless NeoVim Config
 -- author: Radley E. Sidwell-lewis
+-- url: https://github.com/radleylewis/nvim-lite
 -- ================================================================================================
 
 -- theme & transparency
-vim.cmd.colorscheme("unokai")
 vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
 vim.api.nvim_set_hl(0, "NormalNC", { bg = "none" })
 vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "none" })
@@ -16,6 +16,8 @@ vim.opt.cursorline = true                          -- Highlight current line
 vim.opt.wrap = false                               -- Don't wrap lines
 vim.opt.scrolloff = 10                             -- Keep 10 lines above/below cursor 
 vim.opt.sidescrolloff = 8                          -- Keep 8 columns left/right of cursor
+-- vim.opt.numberwidth = 4                         -- Width of the left status column
+-- vim.opt.statuscolumn = ""                       -- Default status line
 
 -- Indentation
 vim.opt.tabstop = 2                                -- Tab width
@@ -28,13 +30,13 @@ vim.opt.autoindent = true                          -- Copy indent from current l
 -- Search settings
 vim.opt.ignorecase = true                          -- Case insensitive search
 vim.opt.smartcase = true                           -- Case sensitive if uppercase in search
-vim.opt.hlsearch = false                           -- Don't highlight search results 
+vim.opt.hlsearch = true                            -- Do highlight search results 
 vim.opt.incsearch = true                           -- Show matches as you type
 
 -- Visual settings
 vim.opt.termguicolors = true                       -- Enable 24-bit colors
 vim.opt.signcolumn = "yes"                         -- Always show sign column
-vim.opt.colorcolumn = "100"                        -- Show column at 100 characters
+vim.opt.colorcolumn = "160"                        -- Show column at 100 characters
 vim.opt.showmatch = true                           -- Highlight matching brackets
 vim.opt.matchtime = 2                              -- How long to show matching bracket
 vim.opt.cmdheight = 1                              -- Command line height
@@ -45,20 +47,8 @@ vim.opt.pumblend = 10                              -- Popup menu transparency
 vim.opt.winblend = 0                               -- Floating window transparency 
 vim.opt.conceallevel = 0                           -- Don't hide markup 
 vim.opt.concealcursor = ""                         -- Don't hide cursor line markup 
-vim.opt.lazyredraw = true                          -- Don't redraw during macros
+vim.opt.lazyredraw = false                         -- Do redraw during macros
 vim.opt.synmaxcol = 300                            -- Syntax highlighting limit 
-
--- File handling
-vim.opt.backup = false                             -- Don't create backup files
-vim.opt.writebackup = false                        -- Don't create backup before writing
-vim.opt.swapfile = false                           -- Don't create swap files
-vim.opt.undofile = true                            -- Persistent undo
-vim.opt.undodir = vim.fn.expand("~/.vim/undodir")  -- Undo directory
-vim.opt.updatetime = 300                           -- Faster completion
-vim.opt.timeoutlen = 500                           -- Key timeout duration
-vim.opt.ttimeoutlen = 0                            -- Key code timeout
-vim.opt.autoread = true                            -- Auto reload files changed outside vim
-vim.opt.autowrite = false                          -- Don't auto save
 
 -- Behavior settings
 vim.opt.hidden = true                              -- Allow hidden buffers
@@ -67,14 +57,11 @@ vim.opt.backspace = "indent,eol,start"             -- Better backspace behavior
 vim.opt.autochdir = false                          -- Don't auto change directory
 vim.opt.iskeyword:append("-")                      -- Treat dash as part of word
 vim.opt.path:append("**")                          -- include subdirectories in search
-vim.opt.selection = "exclusive"                    -- Selection behavior
+vim.opt.selection = "inclusive"                    -- Selection behavior
 vim.opt.mouse = "a"                                -- Enable mouse support
 vim.opt.clipboard:append("unnamedplus")            -- Use system clipboard
 vim.opt.modifiable = true                          -- Allow buffer modifications
 vim.opt.encoding = "UTF-8"                         -- Set encoding
-
--- Cursor settings
-vim.opt.guicursor = "n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175"
 
 -- Folding settings
 vim.opt.foldmethod = "expr"                        -- Use expression for folding
@@ -93,7 +80,7 @@ vim.g.maplocalleader = " "                         -- Set local leader key (NEW)
 vim.keymap.set("n", "<leader>c", ":nohlsearch<CR>", { desc = "Clear search highlights" })
 
 -- Y to EOL
-vim.keymap.set("n", "Y", "y$", { desc = "Yank to end of line" })
+vim.keymap.set("n", "Y", "y$", { desc = "Yank to the end of the line" })
 
 -- Center screen when jumping
 vim.keymap.set("n", "n", "nzzzv", { desc = "Next search result (centered)" })
@@ -101,15 +88,9 @@ vim.keymap.set("n", "N", "Nzzzv", { desc = "Previous search result (centered)" }
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Half page down (centered)" })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centered)" })
 
--- Better paste behavior
-vim.keymap.set("x", "<leader>p", '"_dP', { desc = "Paste without yanking" })
-
--- Delete without yanking
-vim.keymap.set({ "n", "v" }, "<leader>d", '"_d', { desc = "Delete without yanking" })
-
 -- Buffer navigation
-vim.keymap.set("n", "<leader>bn", ":bnext<CR>", { desc = "Next buffer" })
-vim.keymap.set("n", "<leader>bp", ":bprevious<CR>", { desc = "Previous buffer" })
+vim.keymap.set("n", "<S-h>", ":bnext<CR>", { desc = "Next buffer" })
+vim.keymap.set("n", "<S-l>", ":bprevious<CR>", { desc = "Previous buffer" })
 
 -- Better window navigation
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
@@ -118,8 +99,8 @@ vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
 -- Splitting & Resizing
-vim.keymap.set("n", "<leader>sv", ":vsplit<CR>", { desc = "Split window vertically" })
-vim.keymap.set("n", "<leader>sh", ":split<CR>", { desc = "Split window horizontally" })
+vim.keymap.set("n", "<leader>|", ":vsplit<CR>", { desc = "Split window vertically" })
+vim.keymap.set("n", "<leader>-", ":split<CR>", { desc = "Split window horizontally" })
 vim.keymap.set("n", "<C-Up>", ":resize +2<CR>", { desc = "Increase window height" })
 vim.keymap.set("n", "<C-Down>", ":resize -2<CR>", { desc = "Decrease window height" })
 vim.keymap.set("n", "<C-Left>", ":vertical resize -2<CR>", { desc = "Decrease window width" })
@@ -137,7 +118,7 @@ vim.keymap.set("v", ">", ">gv", { desc = "Indent right and reselect" })
 
 -- Quick file navigation
 vim.keymap.set("n", "<leader>e", ":Explore<CR>", { desc = "Open file explorer" })
-vim.keymap.set("n", "<leader>ff", ":find ", { desc = "Find file" })
+vim.keymap.set("n", "<leader><space>", ":find ", { desc = "Find file" })
 
 -- Better J behavior
 vim.keymap.set("n", "J", "mzJ`z", { desc = "Join lines and keep cursor position" })
@@ -145,6 +126,17 @@ vim.keymap.set("n", "J", "mzJ`z", { desc = "Join lines and keep cursor position"
 -- Quick config editing
 vim.keymap.set("n", "<leader>rc", ":e $MYVIMRC<CR>", { desc = "Edit config" })
 vim.keymap.set("n", "<leader>rl", ":so $MYVIMRC<CR>", { desc = "Reload config" })
+
+-- Fast util
+vim.keymap.set("i", "jj", "<ESC>", { noremap = true, silent = true, desc = "Fast <ESC>" })
+vim.keymap.set("n", "nn", "<cmd>:w<cr>", { noremap = true, silent = true, desc = "Fast save" })
+vim.keymap.set("n", "qq", "<cmd>q!<cr>", { desc = "Fast quit" })
+
+vim.keymap.set("n", "<leader>@", function()
+  local path = vim.fn.expand("%:p")
+  vim.fn.setreg("+", path)
+  print("file:", path)
+end, { desc = "Copy file path" })
 
 -- ============================================================================
 -- USEFUL FUNCTIONS
@@ -363,66 +355,13 @@ end, { noremap = true, silent = true, desc = "Close floating terminal from termi
 -- ============================================================================
 
 -- Tab display settings
-vim.opt.showtabline = 1  -- Always show tabline (0=never, 1=when multiple tabs, 2=always)
+vim.opt.showtabline = 0  -- Always show tabline (0=never, 1=when multiple tabs, 2=always)
 vim.opt.tabline = ''     -- Use default tabline (empty string uses built-in)
 
 -- Transparent tabline appearance
 vim.cmd([[
   hi TabLineFill guibg=NONE ctermfg=242 ctermbg=NONE
 ]])
-
--- Alternative navigation (more intuitive)
-vim.keymap.set('n', '<leader>tn', ':tabnew<CR>', { desc = 'New tab' })
-vim.keymap.set('n', '<leader>tx', ':tabclose<CR>', { desc = 'Close tab' })
-
--- Tab moving
-vim.keymap.set('n', '<leader>tm', ':tabmove<CR>', { desc = 'Move tab' })
-vim.keymap.set('n', '<leader>t>', ':tabmove +1<CR>', { desc = 'Move tab right' })
-vim.keymap.set('n', '<leader>t<', ':tabmove -1<CR>', { desc = 'Move tab left' })
-
--- Function to open file in new tab
-local function open_file_in_tab()
-  vim.ui.input({ prompt = 'File to open in new tab: ', completion = 'file' }, function(input)
-    if input and input ~= '' then
-      vim.cmd('tabnew ' .. input)
-    end
-  end)
-end
-
--- Function to duplicate current tab
-local function duplicate_tab()
-  local current_file = vim.fn.expand('%:p')
-  if current_file ~= '' then
-    vim.cmd('tabnew ' .. current_file)
-  else
-    vim.cmd('tabnew')
-  end
-end
-
--- Function to close tabs to the right
-local function close_tabs_right()
-  local current_tab = vim.fn.tabpagenr()
-  local last_tab = vim.fn.tabpagenr('$')
-
-  for i = last_tab, current_tab + 1, -1 do
-    vim.cmd(i .. 'tabclose')
-  end
-end
-
--- Function to close tabs to the left
-local function close_tabs_left()
-  local current_tab = vim.fn.tabpagenr()
-
-  for i = current_tab - 1, 1, -1 do
-    vim.cmd('1tabclose')
-  end
-end
-
--- Enhanced keybindings
-vim.keymap.set('n', '<leader>tO', open_file_in_tab, { desc = 'Open file in new tab' })
-vim.keymap.set('n', '<leader>td', duplicate_tab, { desc = 'Duplicate current tab' })
-vim.keymap.set('n', '<leader>tr', close_tabs_right, { desc = 'Close tabs to the right' })
-vim.keymap.set('n', '<leader>tL', close_tabs_left, { desc = 'Close tabs to the left' })
 
 -- Function to close buffer but keep tab if it's the only buffer in tab
 local function smart_close_buffer()
@@ -469,16 +408,6 @@ local function file_type()
   end
 
   return (icons[ft] or ft)
-end
-
--- Word count for text files
-local function word_count()
-  local ft = vim.bo.filetype
-  if ft == "markdown" or ft == "text" or ft == "tex" then
-    local words = vim.fn.wordcount().words
-    return "  " .. words .. " words "
-  end
-  return ""
 end
 
 -- File size
