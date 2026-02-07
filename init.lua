@@ -4,10 +4,19 @@
 -- ================================================================================================
 
 -- theme & transparency
-vim.cmd.colorscheme("unokai")
+vim.cmd.colorscheme("wildcharm") -- also good: sorbet, habermax, unokai
 vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
 vim.api.nvim_set_hl(0, "NormalNC", { bg = "none" })
 vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "none" })
+vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
+vim.api.nvim_set_hl(0, "FloatBorder", { bg = "none" })
+vim.api.nvim_set_hl(0, "SignColumn", { bg = "none" })
+vim.api.nvim_set_hl(0, "StatusLine", { bg = "none" })
+vim.api.nvim_set_hl(0, "StatusLineNC", { bg = "none" })
+vim.api.nvim_set_hl(0, "TabLine", { bg = "none" })
+vim.api.nvim_set_hl(0, "TabLineFill", { bg = "none", fg = "#767676" })
+vim.api.nvim_set_hl(0, "TabLineSel", { bg = "none" })
+vim.api.nvim_set_hl(0, "ColorColumn", { bg = "none" })
 
 -- Basic settings
 vim.opt.number = true                              -- Line numbers
@@ -47,6 +56,13 @@ vim.opt.conceallevel = 0                           -- Don't hide markup
 vim.opt.concealcursor = ""                         -- Don't hide cursor line markup 
 vim.opt.lazyredraw = true                          -- Don't redraw during macros
 vim.opt.synmaxcol = 300                            -- Syntax highlighting limit 
+vim.opt.fillchars = { eob = " " }                  -- Hide ~ on empty lines
+
+-- Create undo directory if it doesn't exist
+local undodir = vim.fn.expand("~/.vim/undodir")
+if vim.fn.isdirectory(undodir) == 0 then
+  vim.fn.mkdir(undodir, "p")
+end
 
 -- File handling
 vim.opt.backup = false                             -- Don't create backup files
@@ -254,12 +270,6 @@ vim.opt.diffopt:append("linematch:60")
 vim.opt.redrawtime = 10000
 vim.opt.maxmempattern = 20000
 
--- Create undo directory if it doesn't exist
-local undodir = vim.fn.expand("~/.vim/undodir")
-if vim.fn.isdirectory(undodir) == 0 then
-  vim.fn.mkdir(undodir, "p")
-end
-
 -- ============================================================================
 -- FLOATING TERMINAL
 -- ============================================================================
@@ -283,7 +293,7 @@ local function FloatingTerminal()
   if not terminal_state.buf or not vim.api.nvim_buf_is_valid(terminal_state.buf) then
     terminal_state.buf = vim.api.nvim_create_buf(false, true)
     -- Set buffer options for better terminal experience
-    vim.api.nvim_buf_set_option(terminal_state.buf, 'bufhidden', 'hide')
+    vim.bo[terminal_state.buf].bufhidden = 'hide'
   end
 
   -- Calculate window dimensions
@@ -304,11 +314,8 @@ local function FloatingTerminal()
   })
 
   -- Set transparency for the floating window
-  vim.api.nvim_win_set_option(terminal_state.win, 'winblend', 0)
-
-  -- Set transparent background for the window
-  vim.api.nvim_win_set_option(terminal_state.win, 'winhighlight',
-    'Normal:FloatingTermNormal,FloatBorder:FloatingTermBorder')
+  vim.wo[terminal_state.win].winblend = 0
+  vim.wo[terminal_state.win].winhighlight = 'Normal:FloatingTermNormal,FloatBorder:FloatingTermBorder'
 
   -- Define highlight groups for transparency
   vim.api.nvim_set_hl(0, "FloatingTermNormal", { bg = "none" })
@@ -369,11 +376,6 @@ end, { noremap = true, silent = true, desc = "Close floating terminal from termi
 -- Tab display settings
 vim.opt.showtabline = 1  -- Always show tabline (0=never, 1=when multiple tabs, 2=always)
 vim.opt.tabline = ''     -- Use default tabline (empty string uses built-in)
-
--- Transparent tabline appearance
-vim.cmd([[
-  hi TabLineFill guibg=NONE ctermfg=242 ctermbg=NONE
-]])
 
 -- Alternative navigation (more intuitive)
 vim.keymap.set('n', '<leader>tn', ':tabnew<CR>', { desc = 'New tab' })
@@ -444,79 +446,107 @@ vim.keymap.set('n', '<leader>bd', smart_close_buffer, { desc = 'Smart close buff
 -- STATUSLINE
 -- ============================================================================
 
--- Git branch function
+-- Git branch function with caching and Nerd Font icon
+local cached_branch = ""
+local last_check = 0
 local function git_branch()
-  local branch = vim.fn.system("git branch --show-current 2>/dev/null | tr -d '\n'")
-  if branch ~= "" then
-    return "  " .. branch .. " "
+  local now = vim.loop.now()
+  if now - last_check > 5000 then  -- Check every 5 seconds
+    cached_branch = vim.fn.system("git branch --show-current 2>/dev/null | tr -d '\n'")
+    last_check = now
+  end
+  if cached_branch ~= "" then
+    return " \u{e725} " .. cached_branch .. " "  -- nf-dev-git_branch
   end
   return ""
 end
 
--- File type with icon
+-- File type with Nerd Font icon
 local function file_type()
   local ft = vim.bo.filetype
   local icons = {
-    lua = "[LUA]",
-    python = "[PY]",
-    javascript = "[JS]",
-    html = "[HTML]",
-    css = "[CSS]",
-    json = "[JSON]",
-    markdown = "[MD]",
-    vim = "[VIM]",
-    sh = "[SH]",
+    lua = "\u{e620} ",           -- nf-dev-lua
+    python = "\u{e73c} ",        -- nf-dev-python
+    javascript = "\u{e74e} ",    -- nf-dev-javascript
+    typescript = "\u{e628} ",    -- nf-dev-typescript
+    javascriptreact = "\u{e7ba} ",
+    typescriptreact = "\u{e7ba} ",
+    html = "\u{e736} ",          -- nf-dev-html5
+    css = "\u{e749} ",           -- nf-dev-css3
+    scss = "\u{e749} ",
+    json = "\u{e60b} ",          -- nf-dev-json
+    markdown = "\u{e73e} ",      -- nf-dev-markdown
+    vim = "\u{e62b} ",           -- nf-dev-vim
+    sh = "\u{f489} ",            -- nf-oct-terminal
+    bash = "\u{f489} ",
+    zsh = "\u{f489} ",
+    rust = "\u{e7a8} ",          -- nf-dev-rust
+    go = "\u{e724} ",            -- nf-dev-go
+    c = "\u{e61e} ",             -- nf-dev-c
+    cpp = "\u{e61d} ",           -- nf-dev-cplusplus
+    java = "\u{e738} ",          -- nf-dev-java
+    php = "\u{e73d} ",           -- nf-dev-php
+    ruby = "\u{e739} ",          -- nf-dev-ruby
+    swift = "\u{e755} ",         -- nf-dev-swift
+    kotlin = "\u{e634} ",
+    dart = "\u{e798} ",
+    elixir = "\u{e62d} ",
+    haskell = "\u{e777} ",
+    sql = "\u{e706} ",
+    yaml = "\u{f481} ",
+    toml = "\u{e615} ",
+    xml = "\u{f05c} ",
+    dockerfile = "\u{f308} ",    -- nf-linux-docker
+    gitcommit = "\u{f418} ",     -- nf-oct-git_commit
+    gitconfig = "\u{f1d3} ",     -- nf-fa-git
+    vue = "\u{fd42} ",           -- nf-md-vuejs
+    svelte = "\u{e697} ",
+    astro = "\u{e628} ",
   }
 
   if ft == "" then
-    return "  "
+    return " \u{f15b} "          -- nf-fa-file_o
   end
 
-  return (icons[ft] or ft)
+  return (icons[ft] or " \u{f15b} " .. ft)
 end
 
--- Word count for text files
-local function word_count()
-  local ft = vim.bo.filetype
-  if ft == "markdown" or ft == "text" or ft == "tex" then
-    local words = vim.fn.wordcount().words
-    return "  " .. words .. " words "
-  end
-  return ""
-end
-
--- File size
+-- File size with Nerd Font icon
 local function file_size()
   local size = vim.fn.getfsize(vim.fn.expand('%'))
   if size < 0 then return "" end
+  
+  local size_str
   if size < 1024 then
-    return size .. "B "
+    size_str = size .. "B"
   elseif size < 1024 * 1024 then
-    return string.format("%.1fK", size / 1024)
+    size_str = string.format("%.1fK", size / 1024)
   else
-    return string.format("%.1fM", size / 1024 / 1024)
+    size_str = string.format("%.1fM", size / 1024 / 1024)
   end
+  
+  return " \u{f016} " .. size_str .. " "  -- nf-fa-file_o
 end
 
--- Mode indicators with icons
+-- Mode indicators with Nerd Font icons
 local function mode_icon()
   local mode = vim.fn.mode()
   local modes = {
-    n = "NORMAL",
-    i = "INSERT",
-    v = "VISUAL",
-    V = "V-LINE",
-    ["\22"] = "V-BLOCK",  -- Ctrl-V
-    c = "COMMAND",
-    s = "SELECT",
-    S = "S-LINE",
-    ["\19"] = "S-BLOCK",  -- Ctrl-S
-    R = "REPLACE",
-    r = "REPLACE",
-    ["!"] = "SHELL",
-    t = "TERMINAL"
+    n = " \u{f040} NORMAL",      -- nf-fa-pencil
+    i = " \u{f303} INSERT",      -- nf-linux-vim
+    v = " \u{f06e} VISUAL",      -- nf-fa-eye
+    V = " \u{f06e} V-LINE",
+    ["\22"] = " \u{f06e} V-BLOCK",  -- Ctrl-V
+    c = " \u{f120} COMMAND",     -- nf-fa-terminal
+    s = " \u{f0c5} SELECT",      -- nf-fa-files_o
+    S = " \u{f0c5} S-LINE",
+    ["\19"] = " \u{f0c5} S-BLOCK",  -- Ctrl-S
+    R = " \u{f044} REPLACE",     -- nf-fa-edit
+    r = " \u{f044} REPLACE",
+    ["!"] = " \u{f489} SHELL",   -- nf-oct-terminal
+    t = " \u{f120} TERMINAL"     -- nf-fa-terminal
   }
-  return modes[mode] or "  " .. mode:upper()
+  return modes[mode] or " \u{f059} " .. mode:upper()  -- nf-fa-question_circle
 end
 
 _G.mode_icon = mode_icon
@@ -537,14 +567,14 @@ local function setup_dynamic_statusline()
       "%#StatusLineBold#",
       "%{v:lua.mode_icon()}",
       "%#StatusLine#",
-      " │ %f %h%m%r",
+      " \u{e0b1} %f %h%m%r",     -- nf-pl-left_hard_divider
       "%{v:lua.git_branch()}",
-      " │ ",
+      "\u{e0b1} ",               -- nf-pl-left_hard_divider
       "%{v:lua.file_type()}",
-      " | ",
+      "\u{e0b1} ",               -- nf-pl-left_hard_divider
       "%{v:lua.file_size()}",
-      "%=",                     -- Right-align everything after this
-      "%l:%c  %P ",             -- Line:Column and Percentage
+      "%=",                      -- Right-align everything after this
+      " \u{f017} %l:%c  %P ",    -- nf-fa-clock_o for line/col
     }
     end
   })
@@ -552,9 +582,114 @@ local function setup_dynamic_statusline()
 
   vim.api.nvim_create_autocmd({"WinLeave", "BufLeave"}, {
     callback = function()
-      vim.opt_local.statusline = "  %f %h%m%r │ %{v:lua.file_type()} | %=  %l:%c   %P "
+      vim.opt_local.statusline = "  %f %h%m%r \u{e0b1} %{v:lua.file_type()} %=  %l:%c   %P "
     end
   })
 end
 
 setup_dynamic_statusline()
+
+-- ============================================================================
+-- LSP CONFIGURATION
+-- ============================================================================
+
+-- LSP settings
+local function setup_lsp()
+  -- Show diagnostic signs in the gutter
+  local signs = {
+    Error = "\u{f06a} ", -- nf-fa-exclamation_circle
+    Warn = "\u{f071} ",  -- nf-fa-exclamation_triangle
+    Hint = "\u{f0eb} ",  -- nf-fa-lightbulb_o
+    Info = "\u{f05a} "   -- nf-fa-info_circle
+  }
+
+  for type, icon in pairs(signs) do
+    local hl = "DiagnosticSign" .. type
+    vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+  end
+
+  -- Diagnostic configuration
+  vim.diagnostic.config({
+    virtual_text = {
+      prefix = '●',
+      spacing = 4,
+    },
+    signs = true,
+    underline = true,
+    update_in_insert = false,
+    severity_sort = true,
+    float = {
+      border = 'rounded',
+      source = 'always',
+      header = '',
+      prefix = '',
+    },
+  })
+
+  -- LSP keymaps (set when LSP attaches)
+  vim.api.nvim_create_autocmd('LspAttach', {
+    group = augroup,
+    callback = function(ev)
+      local opts = { buffer = ev.buf }
+      vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+      vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+      vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+      vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+      vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+      vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
+      vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+      vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
+      vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+      vim.keymap.set('n', '<leader>f', function()
+        vim.lsp.buf.format { async = true }
+      end, opts)
+    end,
+  })
+
+  -- Floating window borders
+  local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
+  function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
+    opts = opts or {}
+    opts.border = opts.border or 'rounded'
+    return orig_util_open_floating_preview(contents, syntax, opts, ...)
+  end
+end
+
+-- LSP diagnostic keymaps (always available)
+vim.keymap.set('n', 'pd', vim.diagnostic.goto_prev, { desc = 'Previous diagnostic' })
+vim.keymap.set('n', 'nd', vim.diagnostic.goto_next, { desc = 'Next diagnostic' })
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic list' })
+vim.keymap.set('n', '<leader>dl', vim.diagnostic.open_float, { desc = 'Show line diagnostics' })
+
+setup_lsp()
+
+-- ============================================================================
+-- BUFFER/FILE UTILITIES
+-- ============================================================================
+
+-- Close all buffers except current
+vim.keymap.set('n', '<leader>bo', ':%bd|e#|bd#<CR>', { desc = 'Close all buffers except current' })
+
+-- Rename current file
+vim.keymap.set('n', '<leader>rr', function()
+  local old_name = vim.fn.expand('%')
+  local new_name = vim.fn.input('New file name: ', old_name)
+  if new_name ~= '' and new_name ~= old_name then
+    vim.cmd('saveas ' .. new_name)
+    vim.fn.delete(old_name)
+    print('File renamed to: ' .. new_name)
+  end
+end, { desc = 'Rename current file' })
+
+-- Copy file path variations
+vim.keymap.set('n', '<leader>pf', function()
+  local path = vim.fn.expand('%:p')
+  vim.fn.setreg('+', path)
+  print('Full path: ' .. path)
+end, { desc = 'Copy full file path' })
+
+vim.keymap.set('n', '<leader>pr', function()
+  local path = vim.fn.expand('%')
+  vim.fn.setreg('+', path)
+  print('Relative path: ' .. path)
+end, { desc = 'Copy relative file path' })
