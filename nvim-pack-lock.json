@@ -1,0 +1,84 @@
+{
+  "plugins": {
+    "blink.cmp": {
+      "rev": "cd79f572971c58784ca72551af29af3a63da9168",
+      "src": "https://www.github.com/saghen/blink.cmp"
+    },
+    "efmls-configs-nvim": {
+      "rev": "2dd907fe0043b95a901a9aee814f17804aa4426d",
+      "src": "https://www.github.com/creativenull/efmls-configs-nvim"
+    },
+    "fzf-lua": {
+      "rev": "b2c0603216adb92c6bba81053bc996d7ae95b77a",
+      "src": "https://www.github.com/ibhagwan/fzf-lua"
+    },
+    "gitsigns.nvim": {
+      "rev": "9f3c6dd7868bcc116e9c1c1929ce063b978fa519",
+      "src": "https://www.github.com/lewis6991/gitsigns.nvim"
+    },
+    "mini.ai": {
+      "rev": "b0247752cf629ce7c6bd0a1efd82fb58ff60f9d6",
+      "src": "https://www.github.com/echasnovski/mini.ai"
+    },
+    "mini.bufremove": {
+      "rev": "10857aa39160c127694151828914df3131ba83b6",
+      "src": "https://www.github.com/echasnovski/mini.bufremove"
+    },
+    "mini.comment": {
+      "rev": "a0c721115faff8d05505c0a12dab410084d9e536",
+      "src": "https://www.github.com/echasnovski/mini.comment"
+    },
+    "mini.cursorword": {
+      "rev": "dda0f57d55bb1fa19423b7201b2ba892c7d2bb3c",
+      "src": "https://www.github.com/echasnovski/mini.cursorword"
+    },
+    "mini.indentscope": {
+      "rev": "0308f949f31769e509696af5d5f91cebb2159c69",
+      "src": "https://www.github.com/echasnovski/mini.indentscope"
+    },
+    "mini.move": {
+      "rev": "4d214202d71e0a4066b6288176bbe88f268f9777",
+      "src": "https://www.github.com/echasnovski/mini.move"
+    },
+    "mini.notify": {
+      "rev": "29ec27f60bf4b63e447c851d9061c434d80795a6",
+      "src": "https://www.github.com/echasnovski/mini.notify"
+    },
+    "mini.nvim": {
+      "rev": "dbb073bd2ed4a7bb35daafc7989567f0ff1426ee",
+      "src": "https://www.github.com/echasnovski/mini.nvim"
+    },
+    "mini.pairs": {
+      "rev": "4089aa6ea6423e02e1a8326a7a7a00159f6f5e04",
+      "src": "https://www.github.com/echasnovski/mini.pairs"
+    },
+    "mini.surround": {
+      "rev": "01dd2620e50ebc0f28f7d4ea2db6f846f1540c95",
+      "src": "https://www.github.com/echasnovski/mini.surround"
+    },
+    "mini.trailspace": {
+      "rev": "f8083ca969e1b2098480c10f3c3c4d2ce3586680",
+      "src": "https://www.github.com/echasnovski/mini.trailspace"
+    },
+    "nvim-lspconfig": {
+      "rev": "44acfe887d4056f704ccc4f17513ed41c9e2b2e6",
+      "src": "https://www.github.com/neovim/nvim-lspconfig"
+    },
+    "nvim-tree.lua": {
+      "rev": "e11ce83ed9a00f065bf676ae4e6c261c766989ba",
+      "src": "https://www.github.com/nvim-tree/nvim-tree.lua"
+    },
+    "nvim-treesitter": {
+      "rev": "3edb01f912867603c2aef9079f208f0244c0885b",
+      "src": "https://www.github.com/nvim-treesitter/nvim-treesitter"
+    },
+    "nvim-web-devicons": {
+      "rev": "746ffbb17975ebd6c40142362eee1b0249969c5c",
+      "src": "https://www.github.com/nvim-tree/nvim-web-devicons"
+    },
+    "zen-mode.nvim": {
+      "rev": "8564ce6d29ec7554eb9df578efa882d33b3c23a7",
+      "src": "https://www.github.com/folke/zen-mode.nvim"
+    }
+  }
+}
