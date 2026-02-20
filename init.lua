@@ -212,7 +212,6 @@ vim.opt.pumblend = 10 -- popup menu transparency
 vim.opt.winblend = 0 -- floating window transparency
 vim.opt.conceallevel = 0 -- do not hide markup
 vim.opt.concealcursor = "" -- do not hide cursorline in markup
-vim.opt.lazyredraw = true -- do not redraw during macros
 vim.opt.synmaxcol = 300 -- syntax highlighting limit
 vim.opt.fillchars = { eob = " " } -- hide "~" on empty lines
 
@@ -244,7 +243,7 @@ vim.opt.selection = "inclusive" -- include last char in selection
 vim.opt.mouse = "a" -- enable mouse support
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard
 vim.opt.modifiable = true -- allow buffer modifications
-vim.opt.encoding = "UTF-8" -- set encoding
+vim.opt.encoding = "utf-8" -- set encoding
 
 vim.opt.guicursor =
 	"n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175" -- cursor blinking and settings
@@ -263,6 +262,10 @@ vim.opt.diffopt:append("linematch:60") -- improve diff display
 vim.opt.redrawtime = 10000 -- increase neovim redraw tolerance
 vim.opt.maxmempattern = 20000 -- increase max memory
 
+vim.g.loaded_node_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_python3_provider = 0
 -- ============================================================================
 -- KEYMAPS
 -- ============================================================================
@@ -373,16 +376,21 @@ vim.api.nvim_create_autocmd("FileType", {
 -- ============================================================================
 vim.pack.add({
 	"https://www.github.com/nvim-tree/nvim-tree.lua",
-	"https://www.github.com/saghen/blink.cmp",
 	"https://www.github.com/ibhagwan/fzf-lua",
 	"https://www.github.com/echasnovski/mini.nvim",
 	"https://www.github.com/neovim/nvim-lspconfig",
 	"https://www.github.com/creativenull/efmls-configs-nvim",
 	"https://www.github.com/lewis6991/gitsigns.nvim",
 	"https://www.github.com/folke/zen-mode.nvim",
+	"https://github.com/L3MON4D3/LuaSnip",
 	{
 		src = "https://github.com/nvim-treesitter/nvim-treesitter",
 		branch = "main",
+		build = ":TSUpdate",
+	},
+	{
+		src = "https://github.com/saghen/blink.cmp",
+		version = vim.version.range("1.*"),
 	},
 })
 
@@ -391,18 +399,10 @@ local function packadd(name)
 end
 packadd("nvim-treesitter")
 packadd("blink.cmp")
+packadd("LuaSnip")
 packadd("fzf-lua")
 packadd("nvim-tree.lua")
-packadd("mini.ai")
-packadd("mini.comment")
-packadd("mini.move")
-packadd("mini.surround")
-packadd("mini.cursorword")
-packadd("mini.indentscope")
-packadd("mini.pairs")
-packadd("mini.trailspace")
-packadd("mini.bufremove")
-packadd("mini.notify")
+packadd("mini.nvim")
 packadd("nvim-lspconfig")
 packadd("efmls-configs-nvim")
 packadd("gitsigns.nvim")
@@ -471,6 +471,8 @@ vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = "none" })
 vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "none" })
 vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = "#2a2a2a", bg = "none" })
 vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { bg = "none" })
+
+require("luasnip").config.setup({})
 
 require("nvim-tree").setup({
 	view = {
@@ -581,16 +583,48 @@ end, { desc = "Toggle Zen Mode" })
 -- ============================================================================
 -- LSP + DIAGNOSTICS + blink.cmp capabilities
 -- ============================================================================
-do
-	local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
-	for t, icon in pairs(signs) do
-		vim.fn.sign_define("DiagnosticSign" .. t, { text = icon, texthl = "DiagnosticSign" .. t })
-	end
-end
+require("blink.cmp").setup({
+	keymap = {
+		preset = "none",
+		["<C-Space>"] = { "show", "hide" },
+		["<CR>"] = { "accept", "fallback" },
+		["<C-j>"] = { "select_next", "fallback" },
+		["<C-k>"] = { "select_prev", "fallback" },
+		["<Tab>"] = { "snippet_forward", "fallback" },
+		["<S-Tab>"] = { "snippet_backward", "fallback" },
+	},
+	appearance = { nerd_font_variant = "mono" },
+	completion = { menu = { auto_show = true } },
+	sources = { default = { "lsp", "path", "buffer", "snippets" } },
+	snippets = {
+		expand = function(snippet)
+			require("luasnip").lsp_expand(snippet)
+		end,
+	},
+
+	fuzzy = {
+		implementation = "prefer_rust",
+		prebuilt_binaries = { download = true },
+	},
+})
+
+local diagnostic_signs = {
+	Error = " ",
+	Warn = " ",
+	Hint = "",
+	Info = "",
+}
 
 vim.diagnostic.config({
 	virtual_text = { prefix = "●", spacing = 4 },
-	signs = true,
+	signs = {
+		text = {
+			[vim.diagnostic.severity.ERROR] = diagnostic_signs.Error,
+			[vim.diagnostic.severity.WARN] = diagnostic_signs.Warn,
+			[vim.diagnostic.severity.INFO] = diagnostic_signs.Info,
+			[vim.diagnostic.severity.HINT] = diagnostic_signs.Hint,
+		},
+	},
 	underline = true,
 	update_in_insert = false,
 	severity_sort = true,
@@ -678,7 +712,9 @@ local function lsp_on_attach(ev)
 end
 vim.api.nvim_create_autocmd("LspAttach", { group = augroup, callback = lsp_on_attach })
 
-vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic list" })
+vim.keymap.set("n", "<leader>q", function()
+	vim.diagnostic.setloclist({ open = true })
+end, { desc = "Open diagnostic list" })
 vim.keymap.set("n", "<leader>dl", vim.diagnostic.open_float, { desc = "Show line diagnostics" })
 
 vim.lsp.config("lua_ls", {
