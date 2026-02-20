@@ -1,5 +1,5 @@
 -- ================================================================================================
--- title : Minimal NeoVim Config (single file)
+-- title : Minimal NeoVim Config
 -- author: Radley E. Sidwell-lewis
 -- nvim  : 0.12+
 -- ================================================================================================
@@ -122,21 +122,21 @@ end
 local function mode_icon()
 	local mode = vim.fn.mode()
 	local modes = {
-		n = " \u{f040} NORMAL", -- nf-fa-pencil
-		i = " \u{f303} INSERT", -- nf-linux-vim
-		v = " \u{f06e} VISUAL", -- nf-fa-eye
-		V = " \u{f06e} V-LINE",
-		["\22"] = " \u{f06e} V-BLOCK", -- Ctrl-V
-		c = " \u{f120} COMMAND", -- nf-fa-terminal
-		s = " \u{f0c5} SELECT", -- nf-fa-files_o
+		n = " \u{f121}  NORMAL",
+		i = " \u{f11c}  INSERT",
+		v = " \u{f0168} VISUAL",
+		V = " \u{f0168} V-LINE",
+		["\22"] = " \u{f0168} V-BLOCK",
+		c = " \u{f120} COMMAND",
+		s = " \u{f0c5} SELECT",
 		S = " \u{f0c5} S-LINE",
-		["\19"] = " \u{f0c5} S-BLOCK", -- Ctrl-S
-		R = " \u{f044} REPLACE", -- nf-fa-edit
+		["\19"] = " \u{f0c5} S-BLOCK",
+		R = " \u{f044} REPLACE",
 		r = " \u{f044} REPLACE",
-		["!"] = " \u{f489} SHELL", -- nf-oct-terminal
-		t = " \u{f120} TERMINAL", -- nf-fa-terminal
+		["!"] = " \u{f489} SHELL",
+		t = " \u{f120} TERMINAL",
 	}
-	return (modes[mode] or " \u{f059} ") .. mode:upper() -- nf-fa-question_circle
+	return modes[mode] or (" \u{f059} " .. mode)
 end
 
 _G.mode_icon = mode_icon
@@ -393,8 +393,16 @@ packadd("nvim-treesitter")
 packadd("blink.cmp")
 packadd("fzf-lua")
 packadd("nvim-tree.lua")
-packadd("nvim-web-devicons")
-packadd("mini.nvim")
+packadd("mini.ai")
+packadd("mini.comment")
+packadd("mini.move")
+packadd("mini.surround")
+packadd("mini.cursorword")
+packadd("mini.indentscope")
+packadd("mini.pairs")
+packadd("mini.trailspace")
+packadd("mini.bufremove")
+packadd("mini.notify")
 packadd("nvim-lspconfig")
 packadd("efmls-configs-nvim")
 packadd("gitsigns.nvim")
@@ -408,6 +416,22 @@ local setup_treesitter = function()
 	local treesitter = require("nvim-treesitter")
 	treesitter.setup({})
 	local ensure_installed = {
+		"vim",
+		"vimdoc",
+		"rust",
+		"c",
+		"cpp",
+		"go",
+		"html",
+		"css",
+		"javascript",
+		"json",
+		"lua",
+		"markdown",
+		"python",
+		"typescript",
+		"vue",
+		"svelte",
 		"bash",
 		"lua",
 		"python",
