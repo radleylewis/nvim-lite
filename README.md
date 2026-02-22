@@ -23,7 +23,6 @@ cargo install --locked tree-sitter-cli
 `golang` (for `efm-langserver`)
 ```bash
 sudo pacman -S go
-paru -S efm-langserver
 ```
 
 LuaSnip dependencies:
