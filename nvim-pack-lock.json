@@ -13,6 +13,10 @@
       "rev": "2dd907fe0043b95a901a9aee814f17804aa4426d",
       "src": "https://github.com/creativenull/efmls-configs-nvim"
     },
+    "everforest-nvim": {
+      "rev": "323e7633034a8068636a11597cec03bca5465c50",
+      "src": "https://github.com/neanias/everforest-nvim"
+    },
     "fzf-lua": {
       "rev": "b2c0603216adb92c6bba81053bc996d7ae95b77a",
       "src": "https://www.github.com/ibhagwan/fzf-lua"
