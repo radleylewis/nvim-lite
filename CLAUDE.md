@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a minimal single-file Neovim configuration targeting NeoVim 0.12+. All configuration lives in `init.lua`. The config uses `vim.pack` (built-in) for plugin management, not an external plugin manager.
+This is a modular Neovim configuration targeting NeoVim 0.12+. Entry point is `init.lua` and feature modules live under `lua/` (`core`, `plugins`, `ui`). The config uses `vim.pack` (built-in) for plugin management, not an external plugin manager.
 
 ## Prerequisites
 
@@ -19,22 +19,18 @@ This is a minimal single-file Neovim configuration targeting NeoVim 0.12+. All c
 
 ## Architecture
 
-### Single-File Design
-All configuration is in `init.lua` with these main sections:
-1. **Options** (line 27-110): Editor settings, colorscheme, transparency
-2. **Statusline** (line 112-256): Custom statusline with Nerd Font icons and git branch caching
-3. **Keymaps** (line 258-316): Leader key (`<Space>`), window navigation, LSP bindings
-4. **Autocmds** (line 318-417): Format on save, yank highlighting, cursor position restoration
-5. **Plugin Management** (line 419-440): Plugin declarations using `vim.pack.add()`
-6. **Plugin Configs** (line 457-807): Individual plugin setup including Treesitter, LSP, completion
-7. **Floating Terminal** (line 849-938): Custom floating terminal implementation
+### Modular Design
+- `init.lua`: bootstraps modules in load order
+- `lua/core`: options, keymaps, autocmds, transparency
+- `lua/plugins`: plugin registration and per-plugin configuration
+- `lua/ui`: statusline and other UI modules
 
 ### Plugin System
 Uses `vim.pack.add()` (NeoVim 0.12+ native) instead of external managers:
 - Plugins are declared in `vim.pack.add()` calls
 - Plugin lock file: `nvim-pack-lock.json` (git tracked)
 - Auto-installation on first run
-- Manual installation: Restart neovim after editing `init.lua`
+- Manual installation: restart Neovim after editing plugin declarations
 
 ### LSP & Tooling
 - **LSP**: Uses `vim.lsp.config()` (NeoVim 0.12+ API), not `nvim-lspconfig`'s old setup
@@ -64,19 +60,22 @@ Only triggers when:
 - Persists buffer content across toggles
 - Terminal starts in `$SHELL`
 
-### Claude Code Integration
-Claude Code is integrated directly into the editor with floating terminal windows:
+### Kilo CLI Integration
+Kilo is integrated directly into the editor with floating terminal windows:
 
 **Keybindings:**
-- `<leader>cc` - Open Claude Code terminal for interactive sessions
-- `<leader>cf` - Send current file to Claude Code (uses `--file` flag)
-- `<leader>cs` - Send visual selection to Claude Code (visual mode only)
+- `<leader>cc` - Open Kilo interactive terminal
+- `<leader>cf` - Run Kilo with current file context
+- `<leader>cs` - Run Kilo with visual selection (visual mode)
 
 **Features:**
-- Uses floating terminal for Claude Code sessions
+- Uses floating terminal for Kilo sessions
 - Auto-closes on buffer leave for seamless workflow
 - Handles partial line selections correctly
-- Escapes shell arguments properly for safe command execution
+- Uses argv-based command execution (`termopen({ ... })`) for safe argument handling
+
+**Optional shell integration:**
+- Set `EDITOR`/`VISUAL` to Neovim so Kilo `/editor` opens in Neovim (for example in shell rc: `export EDITOR=nvim` and `export VISUAL=nvim`)
 
 ### Nerd Font Icons
 The config assumes Nerd Fonts are installed. File type icons are hardcoded in the `file_type()` function.
@@ -84,7 +83,7 @@ The config assumes Nerd Fonts are installed. File type icons are hardcoded in th
 ## Development Workflow
 
 ### Testing Changes
-1. Edit `init.lua`
+1. Edit the relevant module in `lua/` (or `init.lua` for bootstrapping changes)
 2. Restart Neovim to reload configuration
 3. For plugin changes: plugins auto-install on restart
 
@@ -114,4 +113,4 @@ Then add corresponding `packadd()` call and configuration.
 - `<leader>sv/sh`: Split vertical/horizontal
 - `<C-h/j/k/l>`: Navigate windows
 - LSP: `<leader>gd` (definition), `<leader>fr` (references), `<leader>ca` (code actions), `K` (hover)
-- **Claude Code**: `<leader>cc` (open terminal), `<leader>cf` (with current file), `<leader>cs` (with selection)
+- **Kilo CLI**: `<leader>cc` (open terminal), `<leader>cf` (with current file), `<leader>cs` (with selection)

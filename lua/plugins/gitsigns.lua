@@ -39,5 +39,16 @@ vim.keymap.set("n", "<leader>hB", function()
 	require("gitsigns").toggle_current_line_blame()
 end, { desc = "Toggle inline blame" })
 vim.keymap.set("n", "<leader>hd", function()
-	require("gitsigns").diffthis()
-end, { desc = "Diff this" })
+	require("gitsigns").diffthis("HEAD")
+end, { desc = "Open file diff" })
+vim.keymap.set("n", "<leader>hD", function()
+	vim.cmd("diffoff!")
+end, { desc = "Close file diff" })
+vim.keymap.set("n", "<leader>ht", function()
+	if vim.wo.diff then
+		vim.cmd("diffoff!")
+		return
+	end
+
+	require("gitsigns").diffthis("HEAD")
+end, { desc = "Toggle file diff" })

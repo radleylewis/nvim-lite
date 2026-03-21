@@ -14,6 +14,4 @@ require("core.options")             -- 2. Editor options (no dependencies)
 require("ui.statusline")            -- 3. Statusline (needs options, exports globals)
 require("core.keymaps")             -- 4. Keymaps (non-plugin only)
 require("core.autocommands")        -- 5. Autocmds (creates augroup)
-require("plugins")                  -- 6. Load plugins (vim.pack.add + packadd)
-require("plugins.terminal")         -- 7. Terminal (creates terminal_state)
-require("plugins.claude")           -- 8. Claude (uses terminal_state)
+require("plugins")                  -- 6. Load plugin configs and integrations
