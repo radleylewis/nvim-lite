@@ -80,6 +80,11 @@ Kilo is integrated directly into the editor with floating terminal windows:
 ### Nerd Font Icons
 The config assumes Nerd Fonts are installed. File type icons are hardcoded in the `file_type()` function.
 
+### Which-Key
+- `which-key.nvim` is configured to match LazyVim-style behavior (`preset = "helix"`).
+- `<leader>?` shows buffer-local keymaps.
+- `<C-w><Space>` opens window hydra mode for window commands.
+
 ## Development Workflow
 
 ### Testing Changes
@@ -108,6 +113,8 @@ Then add corresponding `packadd()` call and configuration.
 - `<leader>e`: Toggle file tree (nvim-tree)
 - `<leader>t`: Toggle floating terminal
 - `<leader>ff/fg/fb/fh`: FZF files/grep/buffers/help
+- `<leader>?`: Buffer keymaps (which-key)
+- `<C-w><Space>`: Window hydra mode (which-key)
 - `<leader>pa`: Copy full file path
 - `<leader>td`: Toggle diagnostics
 - `<leader>sv/sh`: Split vertical/horizontal

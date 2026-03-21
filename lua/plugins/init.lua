@@ -6,6 +6,7 @@ vim.pack.add({
 	"https://www.github.com/echasnovski/mini.nvim",
 	"https://www.github.com/ibhagwan/fzf-lua",
 	"https://www.github.com/nvim-tree/nvim-tree.lua",
+	"https://github.com/folke/which-key.nvim",
 	{ src = "https://github.com/neanias/everforest-nvim", lazy = false, priority = 1000 },
 	{
 		src = "https://github.com/nvim-treesitter/nvim-treesitter",
@@ -31,6 +32,7 @@ packadd("gitsigns.nvim")
 packadd("mini.nvim")
 packadd("fzf-lua")
 packadd("nvim-tree.lua")
+packadd("which-key.nvim")
 packadd("everforest-nvim")
 -- LSP
 packadd("nvim-lspconfig")
@@ -54,3 +56,4 @@ require("plugins.mini-plugins")
 require("plugins.gitsigns")
 require("plugins.terminal")
 require("plugins.kilo")
+require("plugins.which-key")
