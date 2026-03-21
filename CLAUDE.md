@@ -85,6 +85,10 @@ The config assumes Nerd Fonts are installed. File type icons are hardcoded in th
 - `<leader>?` shows buffer-local keymaps.
 - `<C-w><Space>` opens window hydra mode for window commands.
 
+### Keybindings Cheatsheet
+- Canonical keybindings reference: `KEYBINDINGS.md`.
+- To refresh it after keymap changes, use skill: `.claude/skills/update-keybindings-cheatsheet/SKILL.md`.
+
 ## Development Workflow
 
 ### Testing Changes
