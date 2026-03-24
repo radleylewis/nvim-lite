@@ -40,6 +40,13 @@ Uses `vim.pack.add()` (NeoVim 0.12+ native) instead of external managers:
 
 ## Key Features
 
+### IDE Workflow Baseline (Phase 1)
+- **Run tasks**: `overseer.nvim` powers repeatable Node scripts (`dev`, `build`, `test`, `lint`) and script picker flows.
+- **Debugging**: `nvim-dap` + `nvim-dap-ui` + `nvim-dap-virtual-text` + `nvim-dap-vscode-js` provide JS/TS Node debugging.
+- **Testing**: `neotest` with `neotest-jest` and `neotest-vitest` supports nearest/file/project test runs.
+- **Navigation**: `fzf-lua` search-everywhere flow + `aerial.nvim` outline/breadcrumb context.
+- **Refactor/diagnostics UX**: `inc-rename.nvim`, `refactoring.nvim`, and `trouble.nvim` add IDE-style ergonomics.
+
 ### Custom Statusline
 - Nerd Font icons for file types and modes
 - Git branch display with 5-second caching to avoid shell calls
@@ -117,6 +124,7 @@ Then add corresponding `packadd()` call and configuration.
 - `<leader>e`: Toggle file tree (nvim-tree)
 - `<leader>t`: Toggle floating terminal
 - `<leader>ff/fg/fb/fh`: FZF files/grep/buffers/help
+- `<leader>fe`: FZF search everywhere
 - `<leader>?`: Buffer keymaps (which-key)
 - `<C-w><Space>`: Window hydra mode (which-key)
 - `<leader>pa`: Copy full file path
@@ -124,4 +132,8 @@ Then add corresponding `packadd()` call and configuration.
 - `<leader>sv/sh`: Split vertical/horizontal
 - `<C-h/j/k/l>`: Navigate windows
 - LSP: `<leader>gd` (definition), `<leader>fr` (references), `<leader>ca` (code actions), `K` (hover)
+- **Run/Tasks**: `<leader>rr` (script picker), `<leader>rd/rb/rt/rl` (dev/build/test/lint), `<leader>rp` (task list)
+- **Debug**: `<leader>db` (breakpoint), `<leader>dc` (continue), `<leader>du` (debug UI), `<leader>dx` (terminate)
+- **Tests**: `<leader>tn` (nearest), `<leader>tf` (file), `<leader>ta` (project), `<leader>tv` (nearest with DAP)
+- **IDE aliases**: `<leader>jf/jc/js/ju/jr/jm` (go to file/class/symbol/usages, rename, refactor)
 - **Kilo CLI**: `<leader>cc` (open terminal), `<leader>cf` (with current file), `<leader>cs` (with selection)

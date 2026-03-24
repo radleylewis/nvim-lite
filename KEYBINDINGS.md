@@ -43,7 +43,7 @@ This document lists the keymaps currently configured in this repository.
 | n | `<leader>pa` | Copy full file path to clipboard |
 | n | `<leader>td` | Toggle diagnostics |
 
-## File/Search (`lua/plugins/nvim-tree.lua`, `lua/plugins/fzf-lua.lua`)
+## File/Search/Navigation (`lua/plugins/fzf-lua.lua`, `lua/plugins/navigation.lua`, `lua/plugins/nvim-tree.lua`)
 
 | Mode | Key | Action |
 |---|---|---|
@@ -54,6 +54,56 @@ This document lists the keymaps currently configured in this repository.
 | n | `<leader>fh` | FZF help tags |
 | n | `<leader>fx` | FZF diagnostics (document) |
 | n | `<leader>fX` | FZF diagnostics (workspace) |
+| n | `<leader>fe` | FZF search everywhere |
+| n | `<leader>fo` | FZF old files |
+| n | `<leader>fj` | FZF recent locations |
+| n | `<leader>se` | Search everywhere picker |
+| n | `<leader>so` | Symbols outline toggle |
+| n | `<leader>sb` | Symbols breadcrumb nav |
+
+## Run/Debug/Test (`lua/plugins/tasks.lua`, `lua/plugins/dap.lua`, `lua/plugins/test.lua`)
+
+| Mode | Key | Action |
+|---|---|---|
+| n | `<leader>rr` | Run package script picker |
+| n | `<leader>rd` | Run `dev` script |
+| n | `<leader>rb` | Run `build` script |
+| n | `<leader>rt` | Run `test` script |
+| n | `<leader>rl` | Run `lint` script |
+| n | `<leader>rp` | Toggle task list |
+| n | `<leader>db` | Debug toggle breakpoint |
+| n | `<leader>dB` | Debug conditional breakpoint |
+| n | `<leader>dc` | Debug continue/start |
+| n | `<leader>di` | Debug step into |
+| n | `<leader>do` | Debug step over |
+| n | `<leader>dO` | Debug step out |
+| n | `<leader>dr` | Debug REPL toggle |
+| n | `<leader>du` | Debug UI toggle |
+| n | `<leader>dx` | Debug terminate |
+| n | `<leader>tn` | Test nearest |
+| n | `<leader>tf` | Test file |
+| n | `<leader>ta` | Test project |
+| n | `<leader>tv` | Test nearest with DAP |
+| n | `<leader>tl` | Re-run last test |
+| n | `<leader>ts` | Toggle test summary |
+| n | `<leader>to` | Open test output |
+| n | `<leader>tO` | Toggle test output panel |
+
+## IDE/Refactor Aliases (`lua/plugins/navigation.lua`, `lua/plugins/dap.lua`, `lua/plugins/test.lua`)
+
+| Mode | Key | Action |
+|---|---|---|
+| n | `<leader>jf` | IDEA alias: go to file |
+| n | `<leader>jc` | IDEA alias: go to class |
+| n | `<leader>js` | IDEA alias: go to symbol |
+| n | `<leader>ju` | IDEA alias: find usages |
+| n | `<leader>jr` | IDEA alias: rename |
+| n | `<leader>jm` | IDEA alias: refactor menu |
+| n | `<leader>jd` | IDEA alias: debug |
+| n | `<leader>jt` | IDEA alias: run nearest test |
+| n,x | `<leader>re` | Refactor extract function |
+| n,x | `<leader>rv` | Refactor extract variable |
+| n,x | `<leader>rm` | Refactor menu |
 
 ## Git (`lua/plugins/gitsigns.lua`)
 
@@ -80,7 +130,7 @@ This document lists the keymaps currently configured in this repository.
 | n | `<leader>cf` | Run Kilo with current file |
 | v | `<leader>cs` | Run Kilo with selection |
 
-## LSP and Diagnostics (`lua/plugins/lsp/handlers.lua`)
+## LSP and Diagnostics (`lua/plugins/lsp/handlers.lua`, `lua/plugins/navigation.lua`)
 
 ### LSP attach (buffer-local)
 
@@ -90,7 +140,7 @@ This document lists the keymaps currently configured in this repository.
 | n | `<leader>gD` | Go to definition (direct LSP) |
 | n | `<leader>gS` | Open definition in vertical split |
 | n | `<leader>ca` | Code action |
-| n | `<leader>rn` | Rename symbol |
+| n | `<leader>rn` | Rename symbol (IncRename UX if available) |
 | n | `<leader>D` | Line diagnostics float |
 | n | `<leader>d` | Cursor diagnostics float |
 | n | `<leader>nd` | Next diagnostic |
@@ -98,18 +148,25 @@ This document lists the keymaps currently configured in this repository.
 | n | `K` | Hover |
 | n | `<leader>fd` | LSP definitions (fzf-lua) |
 | n | `<leader>fr` | LSP references (fzf-lua) |
+| n | `<leader>fu` | LSP references alias |
 | n | `<leader>ft` | LSP type definitions (fzf-lua) |
 | n | `<leader>fs` | LSP document symbols (fzf-lua) |
 | n | `<leader>fw` | LSP workspace symbols (fzf-lua) |
 | n | `<leader>fi` | LSP implementations (fzf-lua) |
 | n | `<leader>oi` | Organize imports + format (if supported) |
+| n | `<leader>ou` | Remove unused imports (if supported) |
+| n | `<leader>of` | Apply fix-all code actions (if supported) |
 
-### Global diagnostics
+### Global diagnostics/panels
 
 | Mode | Key | Action |
 |---|---|---|
 | n | `<leader>q` | Open diagnostic location list |
 | n | `<leader>dl` | Show line diagnostics |
+| n | `<leader>xx` | Toggle diagnostics panel |
+| n | `<leader>xw` | Toggle document diagnostics panel |
+| n | `<leader>xq` | Toggle quickfix panel |
+| n | `<leader>xl` | Toggle location list panel |
 
 ## Which-Key (`lua/plugins/which-key.lua`)
 
@@ -128,8 +185,12 @@ Registered prefix groups (discoverability labels):
 - `<leader>f` file/find
 - `<leader>g` git
 - `<leader>gh` hunks
+- `<leader>j` ide aliases
+- `<leader>o` organize/imports
 - `<leader>q` quit/session
+- `<leader>r` run/refactor
 - `<leader>s` search
+- `<leader>t` terminal/tests
 - `<leader>u` ui
 - `<leader>w` windows (proxy for `<C-w>`)
 - `<leader>x` diagnostics/quickfix

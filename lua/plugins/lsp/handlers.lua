@@ -26,7 +26,14 @@ local function lsp_on_attach(ev)
 	end, opts)
 
 	vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-	vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+	vim.keymap.set("n", "<leader>rn", function()
+		local ok = pcall(require, "inc_rename")
+		if ok then
+			vim.cmd("IncRename " .. vim.fn.expand("<cword>"))
+			return
+		end
+		vim.lsp.buf.rename()
+	end, opts)
 
 	vim.keymap.set("n", "<leader>D", function()
 		vim.diagnostic.open_float({ scope = "line" })
@@ -48,6 +55,9 @@ local function lsp_on_attach(ev)
 		require("fzf-lua").lsp_definitions({ jump_to_single_result = true })
 	end, opts)
 	vim.keymap.set("n", "<leader>fr", function()
+		require("fzf-lua").lsp_references()
+	end, opts)
+	vim.keymap.set("n", "<leader>fu", function()
 		require("fzf-lua").lsp_references()
 	end, opts)
 	vim.keymap.set("n", "<leader>ft", function()
@@ -73,6 +83,22 @@ local function lsp_on_attach(ev)
 			vim.defer_fn(function()
 				vim.lsp.buf.format({ bufnr = bufnr })
 			end, 50)
+		end, opts)
+
+		vim.keymap.set("n", "<leader>ou", function()
+			vim.lsp.buf.code_action({
+				context = { only = { "source.removeUnusedImports", "source.removeUnusedImports.ts" }, diagnostics = {} },
+				apply = true,
+				bufnr = bufnr,
+			})
+		end, opts)
+
+		vim.keymap.set("n", "<leader>of", function()
+			vim.lsp.buf.code_action({
+				context = { only = { "source.fixAll", "source.fixAll.ts" }, diagnostics = {} },
+				apply = true,
+				bufnr = bufnr,
+			})
 		end, opts)
 	end
 end

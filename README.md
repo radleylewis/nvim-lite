@@ -1,6 +1,8 @@
 # nvim-lite
 A minimal neovim configuration.
 
+- IntelliJ migration guide: `IDEA_TO_NEOVIM_GUIDE.md`
+
 Requires NeoVim 0.12 or later
 
 Copy and enjoy it with:
