@@ -1,9 +1,10 @@
 -- ============================================================================
--- DAP (JS/TS NODE BASELINE)
+-- DAP (LANGUAGE ORCHESTRATOR)
 -- ============================================================================
 
 local dap = require("dap")
 local dapui = require("dapui")
+local language_registry = require("languages")
 local task_runner = require("plugins.tasks")
 
 dapui.setup({
@@ -39,62 +40,16 @@ require("nvim-dap-virtual-text").setup({
 	highlight_new_as_changed = true,
 })
 
-require("dap-vscode-js").setup({
-	debugger_cmd = { "js-debug-adapter" },
-	adapters = { "pwa-node", "node-terminal", "pwa-chrome", "pwa-msedge", "pwa-extensionHost" },
-})
-
-local function pick_args()
-	local input = vim.fn.input("Arguments: ")
-	if input == "" then
-		return {}
+for _, contribution in ipairs(language_registry.collect("dap")) do
+	local dap_contribution = contribution.value
+	if type(dap_contribution.setup) == "function" then
+		pcall(dap_contribution.setup, {
+			dap = dap,
+			dapui = dapui,
+			task_runner = task_runner,
+			language = contribution.language,
+		})
 	end
-	return vim.split(input, " ", { trimempty = true })
-end
-
-local js_filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" }
-local js_configurations = {
-	{
-		type = "pwa-node",
-		request = "launch",
-		name = "Debug current file",
-		cwd = function()
-			return task_runner.project_root()
-		end,
-		program = "${file}",
-		runtimeExecutable = "node",
-		sourceMaps = true,
-		skipFiles = { "<node_internals>/**", "${workspaceFolder}/node_modules/**" },
-		console = "integratedTerminal",
-	},
-	{
-		type = "pwa-node",
-		request = "launch",
-		name = "Debug current file (with args)",
-		cwd = function()
-			return task_runner.project_root()
-		end,
-		program = "${file}",
-		args = pick_args,
-		runtimeExecutable = "node",
-		sourceMaps = true,
-		skipFiles = { "<node_internals>/**", "${workspaceFolder}/node_modules/**" },
-		console = "integratedTerminal",
-	},
-	{
-		type = "pwa-node",
-		request = "attach",
-		name = "Attach to process",
-		cwd = function()
-			return task_runner.project_root()
-		end,
-		processId = require("dap.utils").pick_process,
-		skipFiles = { "<node_internals>/**", "${workspaceFolder}/node_modules/**" },
-	},
-}
-
-for _, filetype in ipairs(js_filetypes) do
-	dap.configurations[filetype] = js_configurations
 end
 
 dap.listeners.after.event_initialized["dapui_config"] = function()

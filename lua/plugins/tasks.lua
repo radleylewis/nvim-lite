@@ -1,91 +1,54 @@
 -- ============================================================================
--- TASK RUNNER (NODE/JS-TS FOCUSED)
+-- TASK RUNNER (LANGUAGE ORCHESTRATOR)
 -- ============================================================================
 
 local overseer = require("overseer")
+local language_registry = require("languages")
 
 local M = {}
 
-local function file_exists(path)
-	return vim.uv.fs_stat(path) ~= nil
-end
-
 function M.project_root(path)
-	local start_path = path
-	if not start_path or start_path == "" then
-		start_path = vim.api.nvim_buf_get_name(0)
-	end
-	if start_path == "" then
-		start_path = vim.uv.cwd()
-	end
-
-	local package_json = vim.fs.find("package.json", { path = start_path, upward = true })[1]
-	if package_json then
-		return vim.fs.dirname(package_json)
-	end
-
-	local git_dir = vim.fs.find(".git", { path = start_path, upward = true, type = "directory" })[1]
-	if git_dir then
-		return vim.fs.dirname(git_dir)
-	end
-
-	return vim.uv.cwd()
+	return language_registry.project_root(path)
 end
 
-function M.detect_package_manager(root)
-	if file_exists(root .. "/pnpm-lock.yaml") then
-		return "pnpm"
+local function contains(list, value)
+	for _, item in ipairs(list or {}) do
+		if item == value then
+			return true
+		end
 	end
-	if file_exists(root .. "/yarn.lock") then
-		return "yarn"
-	end
-	if file_exists(root .. "/bun.lock") or file_exists(root .. "/bun.lockb") then
-		return "bun"
-	end
-	return "npm"
+	return false
 end
 
-function M.read_scripts(root)
-	local package_path = root .. "/package.json"
-	if not file_exists(package_path) then
-		return {}
+local function active_task_provider(root)
+	local filetype = vim.bo.filetype
+	local contributions = language_registry.collect("tasks")
+
+	for _, entry in ipairs(contributions) do
+		if contains(entry.language.filetypes, filetype) then
+			local detect = entry.value.detect
+			if type(detect) == "function" and detect(root) then
+				return entry
+			end
+		end
 	end
 
-	local lines = vim.fn.readfile(package_path)
-	if not lines or #lines == 0 then
-		return {}
+	for _, entry in ipairs(contributions) do
+		local detect = entry.value.detect
+		if type(detect) == "function" and detect(root) then
+			return entry
+		end
 	end
 
-	local ok, package_json = pcall(vim.json.decode, table.concat(lines, "\n"))
-	if not ok or type(package_json) ~= "table" then
-		return {}
-	end
-
-	if type(package_json.scripts) ~= "table" then
-		return {}
-	end
-
-	return package_json.scripts
+	return nil
 end
 
-function M.run_script(script_name, opts)
-	local options = opts or {}
-	local root = options.root or M.project_root(options.path)
-	local scripts = M.read_scripts(root)
-
-	if not scripts[script_name] then
-		vim.notify("No script named '" .. script_name .. "' in " .. root .. "/package.json", vim.log.levels.WARN)
-		return
-	end
-
-	local manager = M.detect_package_manager(root)
-	local args = { "run", script_name }
-
+local function start_task(spec)
 	local task = overseer.new_task({
-		cmd = manager,
-		args = args,
-		cwd = root,
-		name = "Run " .. script_name,
+		cmd = spec.cmd,
+		args = spec.args,
+		cwd = spec.cwd,
+		name = spec.name,
 		components = { "default" },
 	})
 	task:start()
@@ -93,44 +56,65 @@ end
 
 function M.run_named(task_name)
 	local root = M.project_root()
-	local scripts = M.read_scripts(root)
-	local candidates = {
-		dev = { "dev", "start" },
-		build = { "build" },
-		test = { "test" },
-		lint = { "lint" },
-	}
-
-	for _, script in ipairs(candidates[task_name] or {}) do
-		if scripts[script] then
-			M.run_script(script, { root = root })
-			return
-		end
+	local provider = active_task_provider(root)
+	if not provider then
+		vim.notify("No language task provider found for " .. root, vim.log.levels.WARN)
+		return
 	end
 
-	vim.notify("No matching script for task '" .. task_name .. "'", vim.log.levels.WARN)
+	local run_named = provider.value.run_named
+	if type(run_named) ~= "function" then
+		vim.notify("Language task provider cannot run named tasks", vim.log.levels.WARN)
+		return
+	end
+
+	local spec, err = run_named(root, task_name)
+	if not spec then
+		vim.notify(err or "Task is not available", vim.log.levels.WARN)
+		return
+	end
+
+	start_task(spec)
 end
 
 function M.pick_and_run_script()
 	local root = M.project_root()
-	local scripts = M.read_scripts(root)
-	local names = {}
-
-	for name in pairs(scripts) do
-		table.insert(names, name)
-	end
-
-	table.sort(names)
-
-	if #names == 0 then
-		vim.notify("No scripts found in " .. root .. "/package.json", vim.log.levels.WARN)
+	local provider = active_task_provider(root)
+	if not provider then
+		vim.notify("No language task provider found for " .. root, vim.log.levels.WARN)
 		return
 	end
 
-	vim.ui.select(names, { prompt = "Run package script" }, function(choice)
-		if choice then
-			M.run_script(choice, { root = root })
+	local list = provider.value.list
+	local build_task = provider.value.build_task
+	if type(list) ~= "function" or type(build_task) ~= "function" then
+		vim.notify("Language task provider is incomplete", vim.log.levels.WARN)
+		return
+	end
+
+	local entries = list(root)
+	if type(entries) ~= "table" or #entries == 0 then
+		vim.notify("No runnable tasks found for " .. root, vim.log.levels.WARN)
+		return
+	end
+
+	vim.ui.select(entries, {
+		prompt = provider.value.picker_prompt or "Run task",
+		format_item = function(item)
+			return item.label
+		end,
+	}, function(choice)
+		if not choice then
+			return
 		end
+
+		local spec, err = build_task(root, choice.id)
+		if not spec then
+			vim.notify(err or "Task is not available", vim.log.levels.WARN)
+			return
+		end
+
+		start_task(spec)
 	end)
 end
 
@@ -144,19 +128,19 @@ overseer.setup({
 	templates = { "builtin", "user" },
 })
 
-vim.keymap.set("n", "<leader>rr", M.pick_and_run_script, { desc = "Run script picker" })
+vim.keymap.set("n", "<leader>rr", M.pick_and_run_script, { desc = "Run task picker" })
 vim.keymap.set("n", "<leader>rd", function()
 	M.run_named("dev")
-end, { desc = "Run dev script" })
+end, { desc = "Run dev task" })
 vim.keymap.set("n", "<leader>rb", function()
 	M.run_named("build")
-end, { desc = "Run build script" })
+end, { desc = "Run build task" })
 vim.keymap.set("n", "<leader>rt", function()
 	M.run_named("test")
-end, { desc = "Run test script" })
+end, { desc = "Run test task" })
 vim.keymap.set("n", "<leader>rl", function()
 	M.run_named("lint")
-end, { desc = "Run lint script" })
+end, { desc = "Run lint task" })
 vim.keymap.set("n", "<leader>rp", function()
 	overseer.toggle({ direction = "right" })
 end, { desc = "Toggle task list" })

@@ -42,7 +42,7 @@ Leader key in this config is `Space`.
 | Extract method/function | Extract Method (`Cmd/Ctrl+Alt+M`) | `<leader>re` (normal/visual) | `refactoring.nvim` |
 | Extract variable | Extract Variable (`Cmd/Ctrl+Alt+V`) | `<leader>rv` (normal/visual) | `refactoring.nvim` |
 | Show problems panel | Problems tool window | `<leader>xx`, `<leader>xw`, `<leader>xq`, `<leader>xl` | `trouble.nvim` |
-| Run named task | Run Anything / Run config | `<leader>rr`, `<leader>rd/rb/rt/rl` | `overseer.nvim` + package scripts |
+| Run named task | Run Anything / Run config | `<leader>rr`, `<leader>rd/rb/rt/rl` | `overseer.nvim` + language task providers |
 | Run nearest test | Run test at cursor | `<leader>tn` or `<leader>jt` | `neotest` |
 | Run test file | Run current test file | `<leader>tf` | `neotest` |
 | Run full test project | Run all tests | `<leader>ta` | `neotest` |
@@ -54,6 +54,20 @@ Leader key in this config is `Space`.
 | Step out | Step Out (`Shift+F8`) | `<leader>dO` | `nvim-dap` |
 | View variables/frames | Debug tool windows | `<leader>du` | `nvim-dap-ui` |
 | Stop debugging | Stop (`Cmd/Ctrl+F2`) | `<leader>dx` | `nvim-dap` |
+
+## Java Workflow (Maven + Gradle)
+
+- LSP attaches via `nvim-jdtls` with `start_or_attach` on Java buffers.
+- Root detection includes `.git`, `mvnw`, `pom.xml`, `gradlew`, `settings.gradle`, `build.gradle`.
+- Wrapper-first task execution is built in:
+  - Gradle: `./gradlew` before `gradle`
+  - Maven: `./mvnw` before `mvn`
+- Keymaps:
+  - `<leader>rr` task picker (shows Java build/test/clean/run tasks)
+  - `<leader>rb`, `<leader>rt`, `<leader>rd` for fast build/test/run
+  - `<leader>tC` test Java class (buffer-local)
+  - `<leader>jO` organize imports (buffer-local)
+- Debugging reuses existing DAP keymaps (`<leader>d*`) through jdtls DAP integration.
 
 ## IntelliJ-Style Alias Layer (`<leader>j`)
 
@@ -93,9 +107,10 @@ These aliases are additive and do not replace existing Vim-native mappings.
 
 ## Current Baseline vs Planned Enhancements
 
-Phase 1 delivered:
+Phase 1+ delivered:
 
 - JS/TS + Node run/test/debug backbone
+- Java Maven/Gradle LSP + test + debug + task support
 - IntelliJ-like alias keymaps without removing existing mappings
 - Search/symbol/diagnostics/refactor baseline ergonomics
 

@@ -3,6 +3,7 @@
 -- ============================================================================
 
 -- Load LSP modules in correct order
+require("mason").setup({})
 require("plugins.lsp.config")
 require("plugins.lsp.handlers")
 require("plugins.lsp.efm")

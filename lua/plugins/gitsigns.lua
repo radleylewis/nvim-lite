@@ -15,8 +15,6 @@ require("gitsigns").setup({
 	current_line_blame = false,
 })
 
-require("mason").setup({})
-
 vim.keymap.set("n", "]h", function()
 	require("gitsigns").next_hunk()
 end, { desc = "Next git hunk" })

@@ -16,6 +16,7 @@ vim.pack.add({
 	-- Language Server Protocols
 	"https://www.github.com/neovim/nvim-lspconfig",
 	"https://github.com/mason-org/mason.nvim",
+	"https://github.com/mfussenegger/nvim-jdtls",
 	"https://github.com/creativenull/efmls-configs-nvim",
 	{
 		src = "https://github.com/saghen/blink.cmp",
@@ -33,6 +34,7 @@ vim.pack.add({
 	"https://github.com/nvim-neotest/neotest",
 	"https://github.com/nvim-neotest/neotest-jest",
 	"https://github.com/marilari88/neotest-vitest",
+	"https://github.com/rcasia/neotest-java",
 	"https://github.com/stevearc/overseer.nvim",
 	-- Navigation and IDE ergonomics
 	"https://github.com/stevearc/aerial.nvim",
@@ -54,6 +56,7 @@ packadd("everforest-nvim")
 -- LSP
 packadd("nvim-lspconfig")
 packadd("mason.nvim")
+packadd("nvim-jdtls")
 packadd("efmls-configs-nvim")
 packadd("blink.cmp")
 packadd("LuaSnip")
@@ -68,6 +71,7 @@ packadd("plenary.nvim")
 packadd("neotest")
 packadd("neotest-jest")
 packadd("neotest-vitest")
+packadd("neotest-java")
 packadd("overseer.nvim")
 -- Navigation and IDE ergonomics
 packadd("aerial.nvim")

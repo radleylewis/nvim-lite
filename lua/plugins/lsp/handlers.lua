@@ -4,6 +4,7 @@
 
 local autocmds = require("core.autocommands")
 local augroup = autocmds.augroup
+local language_registry = require("languages")
 
 local function lsp_on_attach(ev)
 	local client = vim.lsp.get_client_by_id(ev.data.client_id)
@@ -101,6 +102,8 @@ local function lsp_on_attach(ev)
 			})
 		end, opts)
 	end
+
+	language_registry.on_lsp_attach(ev, client, bufnr)
 end
 
 vim.api.nvim_create_autocmd("LspAttach", { group = augroup, callback = lsp_on_attach })

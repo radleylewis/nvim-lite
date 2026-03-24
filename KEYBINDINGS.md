@@ -65,11 +65,11 @@ This document lists the keymaps currently configured in this repository.
 
 | Mode | Key | Action |
 |---|---|---|
-| n | `<leader>rr` | Run package script picker |
-| n | `<leader>rd` | Run `dev` script |
-| n | `<leader>rb` | Run `build` script |
-| n | `<leader>rt` | Run `test` script |
-| n | `<leader>rl` | Run `lint` script |
+| n | `<leader>rr` | Run task picker (language-aware) |
+| n | `<leader>rd` | Run `dev`/`run` task |
+| n | `<leader>rb` | Run `build` task |
+| n | `<leader>rt` | Run `test` task |
+| n | `<leader>rl` | Run `lint` task |
 | n | `<leader>rp` | Toggle task list |
 | n | `<leader>db` | Debug toggle breakpoint |
 | n | `<leader>dB` | Debug conditional breakpoint |
@@ -88,6 +88,7 @@ This document lists the keymaps currently configured in this repository.
 | n | `<leader>ts` | Toggle test summary |
 | n | `<leader>to` | Open test output |
 | n | `<leader>tO` | Toggle test output panel |
+| n | `<leader>tC` | Test Java class (buffer-local, Java) |
 
 ## IDE/Refactor Aliases (`lua/plugins/navigation.lua`, `lua/plugins/dap.lua`, `lua/plugins/test.lua`)
 
@@ -101,6 +102,7 @@ This document lists the keymaps currently configured in this repository.
 | n | `<leader>jm` | IDEA alias: refactor menu |
 | n | `<leader>jd` | IDEA alias: debug |
 | n | `<leader>jt` | IDEA alias: run nearest test |
+| n | `<leader>jO` | Java organize imports (buffer-local, Java) |
 | n,x | `<leader>re` | Refactor extract function |
 | n,x | `<leader>rv` | Refactor extract variable |
 | n,x | `<leader>rm` | Refactor menu |
@@ -131,6 +133,8 @@ This document lists the keymaps currently configured in this repository.
 | v | `<leader>cs` | Run Kilo with selection |
 
 ## LSP and Diagnostics (`lua/plugins/lsp/handlers.lua`, `lua/plugins/navigation.lua`)
+
+Language-specific LSP keymaps are contributed through `lua/languages/*` modules.
 
 ### LSP attach (buffer-local)
 

@@ -45,6 +45,10 @@
       "rev": "b059824dc3c9422ccf6cfdbd7349df9f65389d39",
       "src": "https://github.com/nvim-neotest/neotest"
     },
+    "neotest-java": {
+      "rev": "f08ee74308b78c511ebd80b310432ea0bc2de042",
+      "src": "https://github.com/rcasia/neotest-java"
+    },
     "neotest-jest": {
       "rev": "3f0cc2cff1ee05394081805c622dc2551b54d8c4",
       "src": "https://github.com/nvim-neotest/neotest-jest"
@@ -68,6 +72,10 @@
     "nvim-dap-vscode-js": {
       "rev": "03bd29672d7fab5e515fc8469b7d07cc5994bbf6",
       "src": "https://github.com/mxsdev/nvim-dap-vscode-js"
+    },
+    "nvim-jdtls": {
+      "rev": "77ccaeb422f8c81b647605da5ddb4a7f725cda90",
+      "src": "https://github.com/mfussenegger/nvim-jdtls"
     },
     "nvim-lspconfig": {
       "rev": "5a855bcfec7973767a1a472335684bbd71d2fa2b",

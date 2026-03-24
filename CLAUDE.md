@@ -24,6 +24,7 @@ This is a modular Neovim configuration targeting NeoVim 0.12+. Entry point is `i
 - `lua/core`: options, keymaps, autocmds, transparency
 - `lua/plugins`: plugin registration and per-plugin configuration
 - `lua/ui`: statusline and other UI modules
+- `lua/languages`: pluggable per-language contributions (LSP/DAP/tests/tasks/keymaps)
 
 ### Plugin System
 Uses `vim.pack.add()` (NeoVim 0.12+ native) instead of external managers:
@@ -34,6 +35,7 @@ Uses `vim.pack.add()` (NeoVim 0.12+ native) instead of external managers:
 
 ### LSP & Tooling
 - **LSP**: Uses `vim.lsp.config()` (NeoVim 0.12+ API), not `nvim-lspconfig`'s old setup
+- **Java LSP**: Uses `nvim-jdtls` (`start_or_attach`) with project-scoped workspaces
 - **Linting/Formatting**: efm-langserver configured via efmls-configs-nvim
 - **Completion**: blink.cmp (1.x) with LuaSnip for snippets
 - **Fuzzy Finding**: fzf-lua (integrates with fzf/ripgrep/fd)
@@ -41,11 +43,16 @@ Uses `vim.pack.add()` (NeoVim 0.12+ native) instead of external managers:
 ## Key Features
 
 ### IDE Workflow Baseline (Phase 1)
-- **Run tasks**: `overseer.nvim` powers repeatable Node scripts (`dev`, `build`, `test`, `lint`) and script picker flows.
-- **Debugging**: `nvim-dap` + `nvim-dap-ui` + `nvim-dap-virtual-text` + `nvim-dap-vscode-js` provide JS/TS Node debugging.
-- **Testing**: `neotest` with `neotest-jest` and `neotest-vitest` supports nearest/file/project test runs.
+- **Run tasks**: `overseer.nvim` + language providers power JS/TS scripts and Java Gradle/Maven tasks.
+- **Debugging**: `nvim-dap` + `nvim-dap-ui` + `nvim-dap-virtual-text` with language contributions (`nvim-dap-vscode-js`, jdtls DAP).
+- **Testing**: `neotest` adapters are composed by language modules (`neotest-jest`, `neotest-vitest`, `neotest-java`).
 - **Navigation**: `fzf-lua` search-everywhere flow + `aerial.nvim` outline/breadcrumb context.
 - **Refactor/diagnostics UX**: `inc-rename.nvim`, `refactoring.nvim`, and `trouble.nvim` add IDE-style ergonomics.
+
+### Java Support Assumptions
+- JDK 17+ is required for jdtls.
+- Mason packages expected for full Java debug/test experience: `jdtls`, `java-debug-adapter`, `java-test`.
+- Java root detection supports `.git`, `mvnw`, `pom.xml`, `gradlew`, `settings.gradle`, `build.gradle`.
 
 ### Custom Statusline
 - Nerd Font icons for file types and modes
