@@ -8,6 +8,7 @@ This file documents practical build/lint/test commands and code style rules.
 - Minimum NeoVim version: `0.12+`.
 - Entry point: `init.lua`.
 - Main modules: `lua/core`, `lua/plugins`, `lua/ui`.
+- Language provisioning module: `lua/core/tooling.lua`.
 - Plugin management: native `vim.pack.add()`.
 - LSP setup: native `vim.lsp.config()` and `vim.lsp.enable()`.
 - Lock file: `nvim-pack-lock.json` is tracked; keep it reproducible.
@@ -38,6 +39,17 @@ If Cursor/Copilot rules are later added, merge them into this file.
 
 There is no compile/build system in this repository.
 Validation is done with headless startup checks + lint/format checks.
+
+## Language onboarding/tooling behavior
+- Language modules (`lua/languages/*.lua`) can declare:
+  - `required_tools`
+  - `optional_tools`
+  - `tool_descriptions`
+- On `FileType`, language bootstrap checks required tools and prompts mode when missing:
+  - `Interactive`: per-tool decisions with descriptions.
+  - `Defaults`: install missing default set without extra per-tool prompts.
+- `cancel` does not fail silently; user-facing keymaps report actionable diagnostics.
+- `:ToolingHealth` reports installed/missing status per enabled language and can trigger installs.
 
 ### Environment and startup checks
 - NeoVim version:

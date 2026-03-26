@@ -5,6 +5,8 @@
 local autocmds = require("core.autocommands")
 local augroup = autocmds.augroup
 local fzf = require("fzf-lua")
+local language_registry = require("languages")
+local tooling = require("core.tooling")
 
 require("inc_rename").setup({ preview_empty_name = false })
 
@@ -78,6 +80,25 @@ local function run_refactor_menu()
 	require("refactoring").select_refactor()
 end
 
+local function with_lsp(action, fn, fallback)
+	local bufnr = vim.api.nvim_get_current_buf()
+	local has_clients = #vim.lsp.get_clients({ bufnr = bufnr }) > 0
+	if has_clients then
+		fn()
+		return
+	end
+
+	if type(fallback) == "function" then
+		fallback()
+	end
+
+	tooling.notify_lsp_unavailable({
+		action = action,
+		bufnr = bufnr,
+		language = language_registry.find_for_filetype(vim.bo[bufnr].filetype),
+	})
+end
+
 vim.keymap.set("n", "<leader>se", function()
 	fzf.builtin({ winopts = { title = " Search Everywhere " } })
 end, { desc = "Search everywhere" })
@@ -111,14 +132,24 @@ end, { desc = "Location list panel" })
 vim.keymap.set("n", "<leader>jf", function()
 	fzf.files()
 end, { desc = "IDE go to file" })
-vim.keymap.set("n", "<leader>jc", go_to_class, { desc = "IDE go to class" })
+vim.keymap.set("n", "<leader>jc", function()
+	with_lsp("IDE go to class", go_to_class)
+end, { desc = "IDE go to class" })
 vim.keymap.set("n", "<leader>js", function()
-	fzf.lsp_document_symbols()
+	with_lsp("IDE go to symbol", function()
+		fzf.lsp_document_symbols()
+	end, function()
+		aerial.nav_open()
+	end)
 end, { desc = "IDE go to symbol" })
 vim.keymap.set("n", "<leader>ju", function()
-	fzf.lsp_references()
+	with_lsp("IDE find usages", function()
+		fzf.lsp_references()
+	end)
 end, { desc = "IDE find usages" })
-vim.keymap.set("n", "<leader>jr", rename_symbol, { desc = "IDE rename" })
+vim.keymap.set("n", "<leader>jr", function()
+	with_lsp("IDE rename", rename_symbol)
+end, { desc = "IDE rename" })
 vim.keymap.set("n", "<leader>jm", run_refactor_menu, { desc = "IDE refactor menu" })
 
 vim.keymap.set({ "n", "x" }, "<leader>re", function()

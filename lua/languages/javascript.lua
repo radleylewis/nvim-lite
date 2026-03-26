@@ -2,10 +2,18 @@
 -- JAVASCRIPT/TYPESCRIPT LANGUAGE CONTRIBUTIONS
 -- ============================================================================
 
+local autocmds = require("core.autocommands")
+
 local M = {
 	id = "javascript",
 	filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
 	root_markers = { "package.json" },
+	required_tools = { "typescript-language-server" },
+	optional_tools = { "js-debug-adapter" },
+	tool_descriptions = {
+		["typescript-language-server"] = "TypeScript/JavaScript language server (ts_ls)",
+		["js-debug-adapter"] = "Node/Browser debug adapter for nvim-dap",
+	},
 }
 
 local function file_exists(path)
@@ -56,6 +64,30 @@ M.lsp = {
 	servers = {
 		ts_ls = {},
 	},
+	setup = function()
+		vim.api.nvim_create_autocmd("FileType", {
+			group = autocmds.augroup,
+			pattern = M.filetypes,
+			callback = function(args)
+				local tooling = require("core.tooling")
+				tooling.ensure_language_ready(M, function(ready)
+					if not ready then
+						vim.notify(
+							"JavaScript/TypeScript tooling is not ready; LSP actions may be unavailable",
+							vim.log.levels.WARN
+						)
+						return
+					end
+
+					tooling.retry_lsp_attach(args.buf, "ts_ls", function()
+						vim.api.nvim_buf_call(args.buf, function()
+							vim.cmd("silent! LspStart ts_ls")
+						end)
+					end)
+				end)
+			end,
+		})
+	end,
 }
 
 M.dap = {

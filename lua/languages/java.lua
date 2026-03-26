@@ -8,6 +8,13 @@ local M = {
 	id = "java",
 	filetypes = { "java" },
 	root_markers = { "mvnw", "pom.xml", "gradlew", "settings.gradle", "build.gradle", ".git" },
+	required_tools = { "jdtls", "java-debug-adapter", "java-test" },
+	optional_tools = {},
+	tool_descriptions = {
+		jdtls = "Java language server (LSP attach and navigation)",
+		["java-debug-adapter"] = "Java debug adapter for nvim-dap/jdtls integration",
+		["java-test"] = "Java test bundles used by jdtls test commands",
+	},
 }
 
 local function file_exists(path)
@@ -130,14 +137,12 @@ end
 local function start_or_attach_jdtls(bufnr)
 	local ok, jdtls = pcall(require, "jdtls")
 	if not ok then
-		vim.notify("nvim-jdtls is not available", vim.log.levels.WARN)
-		return
+		return false, "nvim-jdtls is not available"
 	end
 
 	local setup_ok, jdtls_setup = pcall(require, "jdtls.setup")
 	if not setup_ok then
-		vim.notify("jdtls.setup module is not available", vim.log.levels.WARN)
-		return
+		return false, "jdtls.setup module is not available"
 	end
 
 	local file_path = vim.api.nvim_buf_get_name(bufnr)
@@ -146,7 +151,7 @@ local function start_or_attach_jdtls(bufnr)
 		root_dir = vim.fs.dirname(file_path)
 	end
 	if not root_dir then
-		return
+		return false, "Could not determine Java project root"
 	end
 
 	local project_name = sanitize_name(vim.fn.fnamemodify(root_dir, ":t"))
@@ -177,7 +182,12 @@ local function start_or_attach_jdtls(bufnr)
 		end,
 	}
 
-	jdtls.start_or_attach(config)
+	local ok_attach, attach_err = pcall(jdtls.start_or_attach, config)
+	if not ok_attach then
+		return false, tostring(attach_err)
+	end
+
+	return true
 end
 
 M.lsp = {
@@ -186,7 +196,26 @@ M.lsp = {
 			group = autocmds.augroup,
 			pattern = "java",
 			callback = function(args)
-				start_or_attach_jdtls(args.buf)
+				local tooling = require("core.tooling")
+				tooling.ensure_language_ready(M, function(ready)
+					if not ready then
+						vim.notify(
+							"Java tooling is not ready; LSP-dependent actions stay unavailable until installed",
+							vim.log.levels.WARN
+						)
+						return
+					end
+
+					tooling.retry_lsp_attach(args.buf, "jdtls", function()
+						local ok_attach, attach_err = start_or_attach_jdtls(args.buf)
+						if not ok_attach then
+							error(attach_err)
+						end
+					end, {
+						attempts = 6,
+						delay_ms = 650,
+					})
+				end)
 			end,
 		})
 	end,

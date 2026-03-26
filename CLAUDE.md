@@ -36,9 +36,19 @@ Uses `vim.pack.add()` (NeoVim 0.12+ native) instead of external managers:
 ### LSP & Tooling
 - **LSP**: Uses `vim.lsp.config()` (NeoVim 0.12+ API), not `nvim-lspconfig`'s old setup
 - **Java LSP**: Uses `nvim-jdtls` (`start_or_attach`) with project-scoped workspaces
+- **Language bootstrap tooling**: `lua/core/tooling.lua` checks required Mason packages per language and prompts install mode on first open with missing required tools.
 - **Linting/Formatting**: efm-langserver configured via efmls-configs-nvim
 - **Completion**: blink.cmp (1.x) with LuaSnip for snippets
 - **Fuzzy Finding**: fzf-lua (integrates with fzf/ripgrep/fd)
+
+### Language Tooling Bootstrap Flow
+- Prompt appears when opening a language file whose `required_tools` are missing.
+- Install modes:
+  - `Interactive`: per-tool decisions with short tool descriptions.
+  - `Defaults`: install missing required + optional tools without extra prompts.
+- Cancel keeps editor responsive and reports clear warnings for LSP-dependent actions.
+- After successful install, attach is retried automatically (no Neovim restart required).
+- Operational command: `:ToolingHealth` (status per language + quick interactive/default installs).
 
 ## Key Features
 
@@ -51,7 +61,7 @@ Uses `vim.pack.add()` (NeoVim 0.12+ native) instead of external managers:
 
 ### Java Support Assumptions
 - JDK 17+ is required for jdtls.
-- Mason packages expected for full Java debug/test experience: `jdtls`, `java-debug-adapter`, `java-test`.
+- Java `required_tools`: `jdtls`, `java-debug-adapter`, `java-test`.
 - Java root detection supports `.git`, `mvnw`, `pom.xml`, `gradlew`, `settings.gradle`, `build.gradle`.
 
 ### Custom Statusline
