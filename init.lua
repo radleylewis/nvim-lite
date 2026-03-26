@@ -314,6 +314,11 @@ vim.keymap.set("n", "<leader>td", function()
 	vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end, { desc = "Toggle diagnostics" })
 
+vim.keymap.set("n", "<leader>w", ":wq<CR>", { desc = "Write and quit", silent = true })
+vim.keymap.set("n", "<leader>s", ":w<CR>", { desc = "Save the file", silent = true })
+vim.keymap.set("n", "<leader>o", "Go", { desc = "Append at the end of the file", silent = true })
+vim.keymap.set("n", "QQ", ":q<CR>", { desc = "Quick exit", silent = true })
+
 -- ============================================================================
 -- AUTOCMDS
 -- ============================================================================
