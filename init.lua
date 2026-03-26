@@ -479,7 +479,6 @@ local setup_treesitter = function()
 		"vue",
 		"svelte",
 		"bash",
-		"lua",
 	}
 
 	local config = require("nvim-treesitter.config")
