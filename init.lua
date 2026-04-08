@@ -75,7 +75,7 @@ vim.opt.undofile = true -- do create an undo file
 vim.opt.undodir = undodir -- set the undo directory
 vim.opt.updatetime = 300 -- faster completion
 vim.opt.timeoutlen = 500 -- timeout duration
-vim.opt.ttimeoutlen = 0 -- key code timeout
+vim.opt.ttimeoutlen = 50 -- key code timeout
 vim.opt.autoread = true -- auto-reload changes if outside of neovim
 vim.opt.autowrite = false -- do not auto-save
 
