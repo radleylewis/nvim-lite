@@ -55,7 +55,7 @@ vim.opt.showmode = false -- do not show the mode, instead have it in statusline
 vim.opt.pumheight = 10 -- popup menu height
 vim.opt.pumblend = 10 -- popup menu transparency
 vim.opt.winblend = 0 -- floating window transparency
-vim.opt.conceallevel = 0 -- do not hide markup
+vim.opt.conceallevel = 2 -- obsidian requirement
 vim.opt.concealcursor = "" -- do not hide cursorline in markup
 vim.opt.lazyredraw = true -- do not redraw during macros
 vim.opt.synmaxcol = 300 -- syntax highlighting limit
@@ -75,7 +75,7 @@ vim.opt.undofile = true -- do create an undo file
 vim.opt.undodir = undodir -- set the undo directory
 vim.opt.updatetime = 300 -- faster completion
 vim.opt.timeoutlen = 500 -- timeout duration
-vim.opt.ttimeoutlen = 50 -- key code timeout
+vim.opt.ttimeoutlen = 0 -- key code timeout
 vim.opt.autoread = true -- auto-reload changes if outside of neovim
 vim.opt.autowrite = false -- do not auto-save
 
@@ -415,6 +415,7 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt_local.spell = true
 	end,
 })
+
 -- ============================================================================
 -- PLUGINS (vim.pack)
 -- ============================================================================
@@ -437,22 +438,8 @@ vim.pack.add({
 		version = vim.version.range("1.*"),
 	},
 	"https://github.com/L3MON4D3/LuaSnip",
+  	"https://github.com/obsidian-nvim/obsidian.nvim"
 })
-
-local function packadd(name)
-	vim.cmd("packadd " .. name)
-end
-packadd("nvim-treesitter")
-packadd("gitsigns.nvim")
-packadd("mini.nvim")
-packadd("fzf-lua")
-packadd("nvim-tree.lua")
--- LSP
-packadd("nvim-lspconfig")
-packadd("mason.nvim")
-packadd("efmls-configs-nvim")
-packadd("blink.cmp")
-packadd("LuaSnip")
 
 -- ============================================================================
 -- PLUGIN CONFIGS
@@ -508,6 +495,27 @@ local setup_treesitter = function()
 end
 
 setup_treesitter()
+
+local function setup_obsidian()
+  require("obsidian").setup({
+    legacy_commands = false,
+    workspaces = { { name = "Notes", path = "/mnt/z/Notes/" } },
+    picker = { name = "fzf-lua" },
+  })
+
+  vim.keymap.set("n", "<leader>nn", function()
+    vim.cmd("Obsidian workspace")
+    vim.defer_fn(function()
+      vim.cmd("Obsidian new")
+    end, 500)
+  end, { desc = "New note" })
+  vim.keymap.set("n", "<leader>nf", "<cmd>Obsidian quick_switch<cr>", { desc = "Find note" })
+  vim.keymap.set("n", "<leader>ns", "<cmd>Obsidian search<cr>",      { desc = "Search notes" })
+  vim.keymap.set("n", "<leader>nt", "<cmd>Obsidian today<cr>",       { desc = "Today's daily note" })
+  vim.keymap.set("n", "<leader>nw", "<cmd>Obsidian workspace<cr>",   { desc = "Switch workspace" })
+end
+
+setup_obsidian()
 
 require("nvim-tree").setup({
 	view = {
@@ -580,12 +588,10 @@ require("gitsigns").setup({
 require("mason").setup({})
 
 vim.keymap.set("n", "]h", function()
-  -- deprecated: require("gitsigns").next_hunk()
-  require("gitsigns").nav_hunk("next")
+	require("gitsigns").next_hunk()
 end, { desc = "Next git hunk" })
 vim.keymap.set("n", "[h", function()
-  -- deprecated: require("gitsigns").prev_hunk()
-  require("gitsigns").nav_hunk("prev")
+	require("gitsigns").prev_hunk()
 end, { desc = "Previous git hunk" })
 vim.keymap.set("n", "<leader>hs", function()
 	require("gitsigns").stage_hunk()
@@ -631,7 +637,7 @@ vim.diagnostic.config({
 	severity_sort = true,
 	float = {
 		border = "rounded",
-		source = true,
+		source = "always",
 		header = "",
 		prefix = "",
 		focusable = false,
