@@ -75,7 +75,7 @@ vim.opt.undofile = true -- do create an undo file
 vim.opt.undodir = undodir -- set the undo directory
 vim.opt.updatetime = 300 -- faster completion
 vim.opt.timeoutlen = 500 -- timeout duration
-vim.opt.ttimeoutlen = 0 -- key code timeout
+vim.opt.ttimeoutlen = 50 -- key code timeout
 vim.opt.autoread = true -- auto-reload changes if outside of neovim
 vim.opt.autowrite = false -- do not auto-save
 
@@ -588,10 +588,10 @@ require("gitsigns").setup({
 require("mason").setup({})
 
 vim.keymap.set("n", "]h", function()
-	require("gitsigns").next_hunk()
+	require("gitsigns").nav_hunk("next")
 end, { desc = "Next git hunk" })
 vim.keymap.set("n", "[h", function()
-	require("gitsigns").prev_hunk()
+	require("gitsigns").nav_hunk("prev")
 end, { desc = "Previous git hunk" })
 vim.keymap.set("n", "<leader>hs", function()
 	require("gitsigns").stage_hunk()
@@ -637,7 +637,7 @@ vim.diagnostic.config({
 	severity_sort = true,
 	float = {
 		border = "rounded",
-		source = "always",
+		source = true,
 		header = "",
 		prefix = "",
 		focusable = false,
