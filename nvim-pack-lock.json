@@ -40,6 +40,14 @@
     "nvim-treesitter": {
       "rev": "fcd51bbe9245aa9b79a3930ed9ac42e16e1cf33f",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
+    },
+    "obsidian.nvim": {
+      "rev": "08c2b8c126193139b73a193ea90f97105d2e1059",
+      "src": "https://github.com/obsidian-nvim/obsidian.nvim"
+    },
+    "rustaceanvim": {
+      "rev": "8eea5f85d5ce4c1c66643317ebec96e72623e2be",
+      "src": "https://github.com/mrcjkb/rustaceanvim"
     }
   }
 }

@@ -57,7 +57,6 @@ vim.opt.pumblend = 10 -- popup menu transparency
 vim.opt.winblend = 0 -- floating window transparency
 vim.opt.conceallevel = 2 -- obsidian requirement
 vim.opt.concealcursor = "" -- do not hide cursorline in markup
-vim.opt.lazyredraw = true -- do not redraw during macros
 vim.opt.synmaxcol = 300 -- syntax highlighting limit
 vim.opt.fillchars = { eob = " " } -- hide "~" on empty lines
 
@@ -89,7 +88,6 @@ vim.opt.selection = "inclusive" -- include last char in selection
 vim.opt.mouse = "a" -- enable mouse support
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard
 vim.opt.modifiable = true -- allow buffer modifications
-vim.opt.encoding = "utf-8" -- set encoding
 
 vim.opt.guicursor =
 	"n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175" -- cursor blinking and settings
@@ -116,7 +114,7 @@ vim.opt.maxmempattern = 20000 -- increase max memory
 local cached_branch = ""
 local last_check = 0
 local function git_branch()
-	local now = vim.loop.now()
+	local now = vim.uv.now()
 	if now - last_check > 5000 then -- Check every 5 seconds
 		cached_branch = vim.fn.system("git branch --show-current 2>/dev/null | tr -d '\n'")
 		last_check = now
@@ -342,6 +340,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 		"*.cpp",
 		"*.h",
 		"*.hpp",
+		"*.rs",
 	},
 	callback = function(args)
 		-- avoid formatting non-file buffers (helps prevent weird write prompts)
@@ -420,7 +419,6 @@ vim.api.nvim_create_autocmd("FileType", {
 -- PLUGINS (vim.pack)
 -- ============================================================================
 vim.pack.add({
-	"https://www.github.com/lewis6991/gitsigns.nvim",
 	"https://www.github.com/echasnovski/mini.nvim",
 	"https://www.github.com/ibhagwan/fzf-lua",
 	"https://www.github.com/nvim-tree/nvim-tree.lua",
@@ -438,7 +436,8 @@ vim.pack.add({
 		version = vim.version.range("1.*"),
 	},
 	"https://github.com/L3MON4D3/LuaSnip",
-  	"https://github.com/obsidian-nvim/obsidian.nvim"
+	"https://github.com/obsidian-nvim/obsidian.nvim",
+	"https://github.com/mrcjkb/rustaceanvim",
 })
 
 -- ============================================================================
@@ -497,22 +496,25 @@ end
 setup_treesitter()
 
 local function setup_obsidian()
-  require("obsidian").setup({
-    legacy_commands = false,
-    workspaces = { { name = "Notes", path = "/mnt/z/Notes/" } },
-    picker = { name = "fzf-lua" },
-  })
+	if vim.fn.isdirectory("~/Documents/Notes/") == 0 then
+		return
+	end
+	require("obsidian").setup({
+		legacy_commands = false,
+		workspaces = { { name = "Notes", path = "~/Documents/Notes/" } },
+		picker = { name = "fzf-lua" },
+	})
 
-  vim.keymap.set("n", "<leader>nn", function()
-    vim.cmd("Obsidian workspace")
-    vim.defer_fn(function()
-      vim.cmd("Obsidian new")
-    end, 500)
-  end, { desc = "New note" })
-  vim.keymap.set("n", "<leader>nf", "<cmd>Obsidian quick_switch<cr>", { desc = "Find note" })
-  vim.keymap.set("n", "<leader>ns", "<cmd>Obsidian search<cr>",      { desc = "Search notes" })
-  vim.keymap.set("n", "<leader>nt", "<cmd>Obsidian today<cr>",       { desc = "Today's daily note" })
-  vim.keymap.set("n", "<leader>nw", "<cmd>Obsidian workspace<cr>",   { desc = "Switch workspace" })
+	vim.keymap.set("n", "<leader>nn", function()
+		vim.cmd("Obsidian workspace")
+		vim.defer_fn(function()
+			vim.cmd("Obsidian new")
+		end, 500)
+	end, { desc = "New note" })
+	vim.keymap.set("n", "<leader>nf", "<cmd>Obsidian quick_switch<cr>", { desc = "Find note" })
+	vim.keymap.set("n", "<leader>ns", "<cmd>Obsidian search<cr>", { desc = "Search notes" })
+	vim.keymap.set("n", "<leader>nt", "<cmd>Obsidian today<cr>", { desc = "Today's daily note" })
+	vim.keymap.set("n", "<leader>nw", "<cmd>Obsidian workspace<cr>", { desc = "Switch workspace" })
 end
 
 setup_obsidian()
@@ -572,54 +574,40 @@ require("mini.bufremove").setup({})
 require("mini.notify").setup({})
 require("mini.icons").setup({})
 
-require("gitsigns").setup({
-	signs = {
-		add = { text = "\u{2590}" }, -- ▏
-		change = { text = "\u{2590}" }, -- ▐
-		delete = { text = "\u{2590}" }, -- ◦
-		topdelete = { text = "\u{25e6}" }, -- ◦
-		changedelete = { text = "\u{25cf}" }, -- ●
-		untracked = { text = "\u{25cb}" }, -- ○
+require("mini.diff").setup({
+	view = {
+		style = "sign",
+		signs = { add = "▎", change = "▎", delete = "▎" },
 	},
-	signcolumn = true,
-	current_line_blame = false,
 })
 
-require("mason").setup({})
+require("mini.git").setup({})
 
+local MiniDiff = require("mini.diff")
 vim.keymap.set("n", "]h", function()
-	require("gitsigns").nav_hunk("next")
+	MiniDiff.goto_hunk("next")
 end, { desc = "Next git hunk" })
 vim.keymap.set("n", "[h", function()
-	require("gitsigns").nav_hunk("prev")
-end, { desc = "Previous git hunk" })
-vim.keymap.set("n", "<leader>hs", function()
-	require("gitsigns").stage_hunk()
-end, { desc = "Stage hunk" })
-vim.keymap.set("n", "<leader>hr", function()
-	require("gitsigns").reset_hunk()
-end, { desc = "Reset hunk" })
+	MiniDiff.goto_hunk("prev")
+end, { desc = "Prev git hunk" })
+vim.keymap.set("n", "<leader>hs", MiniDiff.operator, { desc = "Stage hunk" })
 vim.keymap.set("n", "<leader>hp", function()
-	require("gitsigns").preview_hunk()
-end, { desc = "Preview hunk" })
+	MiniDiff.toggle_overlay()
+end, { desc = "Preview diff overlay" })
 vim.keymap.set("n", "<leader>hb", function()
-	require("gitsigns").blame_line({ full = true })
-end, { desc = "Blame line" })
-vim.keymap.set("n", "<leader>hB", function()
-	require("gitsigns").toggle_current_line_blame()
-end, { desc = "Toggle inline blame" })
-vim.keymap.set("n", "<leader>hd", function()
-	require("gitsigns").diffthis()
-end, { desc = "Diff this" })
+	require("mini.git").show_at_cursor()
+end, { desc = "Git blame/show" })
+
+require("mason").setup({})
 
 -- ============================================================================
 -- LSP, Linting, Formatting & Completion
 -- ============================================================================
 local diagnostic_signs = {
-	Error = " ",
-	Warn = " ",
-	Hint = "",
-	Info = "",
+	Error = "\u{f057} ",
+	Warn = "\u{f071} ",
+	Hint = "\u{ea61}",
+	Info = "\u{f05a}",
 }
 
 vim.diagnostic.config({
@@ -751,7 +739,6 @@ require("blink.cmp").setup({
 			require("luasnip").lsp_expand(snippet)
 		end,
 	},
-
 	fuzzy = {
 		implementation = "prefer_rust",
 		prebuilt_binaries = { download = true },
@@ -775,6 +762,12 @@ vim.lsp.config("bashls", {})
 vim.lsp.config("ts_ls", {})
 vim.lsp.config("gopls", {})
 vim.lsp.config("clangd", {})
+
+vim.g.rustaceanvim = {
+	server = {
+		capabilities = require("blink.cmp").get_lsp_capabilities(),
+	},
+}
 
 do
 	local luacheck = require("efmls-configs.linters.luacheck")
@@ -907,14 +900,7 @@ local function FloatingTerminal()
 	vim.api.nvim_set_hl(0, "FloatingTermNormal", { bg = "none" })
 	vim.api.nvim_set_hl(0, "FloatingTermBorder", { bg = "none" })
 
-	local has_terminal = false
-	local lines = vim.api.nvim_buf_get_lines(terminal_state.buf, 0, -1, false)
-	for _, line in ipairs(lines) do
-		if line ~= "" then
-			has_terminal = true
-			break
-		end
-	end
+	local has_terminal = vim.bo[terminal_state.buf].buftype == "terminal"
 	if not has_terminal then
 		vim.fn.termopen(os.getenv("SHELL"))
 	end
@@ -922,7 +908,9 @@ local function FloatingTerminal()
 	terminal_state.is_open = true
 	vim.cmd("startinsert")
 
+	local term_augroup = vim.api.nvim_create_augroup("FloatingTermLeave_" .. terminal_state.win, { clear = true })
 	vim.api.nvim_create_autocmd("BufLeave", {
+		group = term_augroup,
 		buffer = terminal_state.buf,
 		callback = function()
 			if terminal_state.is_open and terminal_state.win and vim.api.nvim_win_is_valid(terminal_state.win) then
@@ -935,7 +923,8 @@ local function FloatingTerminal()
 end
 
 vim.keymap.set("n", "<leader>t", FloatingTerminal, { noremap = true, silent = true, desc = "Toggle floating terminal" })
-vim.keymap.set("t", "<Esc>", function()
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true, desc = "Terminal normal mode" })
+vim.keymap.set("t", "<C-q>", function()
 	if terminal_state.is_open and terminal_state.win and vim.api.nvim_win_is_valid(terminal_state.win) then
 		vim.api.nvim_win_close(terminal_state.win, false)
 		terminal_state.is_open = false
