@@ -340,7 +340,6 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 		"*.cpp",
 		"*.h",
 		"*.hpp",
-		"*.rs",
 	},
 	callback = function(args)
 		-- avoid formatting non-file buffers (helps prevent weird write prompts)
@@ -486,7 +485,7 @@ local setup_treesitter = function()
 	vim.api.nvim_create_autocmd("FileType", {
 		group = group,
 		callback = function(args)
-			if vim.list_contains(treesitter.get_installed(), vim.treesitter.language.get_lang(args.match)) then
+			if vim.list_contains(config.get_installed(), vim.treesitter.language.get_lang(args.match)) then
 				vim.treesitter.start(args.buf)
 			end
 		end,
@@ -496,12 +495,12 @@ end
 setup_treesitter()
 
 local function setup_obsidian()
-	if vim.fn.isdirectory("~/Documents/Notes/") == 0 then
+	if vim.fn.isdirectory(vim.fn.expand("~/Documents/Notes/")) == 0 then
 		return
 	end
 	require("obsidian").setup({
 		legacy_commands = false,
-		workspaces = { { name = "Notes", path = "~/Documents/Notes/" } },
+		workspaces = { { name = "Notes", path = vim.fn.expand("~/Documents/Notes/") } },
 		picker = { name = "fzf-lua" },
 	})
 
@@ -681,9 +680,6 @@ local function lsp_on_attach(ev)
 
 	vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
 
-	vim.keymap.set("n", "<leader>fd", function()
-		require("fzf-lua").lsp_definitions({ jump_to_single_result = true })
-	end, opts)
 	vim.keymap.set("n", "<leader>fr", function()
 		require("fzf-lua").lsp_references()
 	end, opts)
