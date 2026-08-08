@@ -318,6 +318,7 @@ local setup_treesitter = function()
 		"rust",
 		"c",
 		"cpp",
+		"c_sharp",
 		"go",
 		"html",
 		"css",
@@ -463,7 +464,7 @@ require("mini.icons").setup({})
 -- groups (no dedicated melange lualine theme exists, so this generates one)
 require("lualine").setup({
 	options = {
-		theme = "auto",
+		theme = "melange", -- melange-nvim ships a dedicated lualine theme
 		icons_enabled = true,
 		component_separators = { left = "", right = "" },
 		section_separators = { left = "", right = "" },
@@ -704,6 +705,7 @@ vim.lsp.config("bashls", {})
 vim.lsp.config("ts_ls", {})
 vim.lsp.config("gopls", {})
 vim.lsp.config("clangd", {})
+vim.lsp.config("omnisharp", {})
 
 vim.g.rustaceanvim = {
 	server = {
@@ -784,6 +786,7 @@ vim.lsp.enable({
 	"ts_ls",
 	"gopls",
 	"clangd",
+	"omnisharp",
 	"efm",
 })
 
