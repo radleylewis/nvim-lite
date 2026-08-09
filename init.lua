@@ -1,5 +1,11 @@
 vim.opt.termguicolors = true
-vim.cmd.colorscheme("habamax")
+
+-- installed early so it's available before colorscheme() runs below
+-- (the rest of the plugin list is installed further down, near PLUGINS)
+vim.pack.add({ "https://github.com/savq/melange-nvim" })
+
+vim.opt.background = "dark" -- set to "light" for the light variant
+vim.cmd.colorscheme("melange")
 
 local function set_transparent() -- set UI component to transparent
 	local groups = {
@@ -52,6 +58,7 @@ vim.opt.showmatch = true -- highlights matching brackets
 vim.opt.cmdheight = 1 -- single line command line
 vim.opt.completeopt = "menuone,noinsert,noselect" -- completion options
 vim.opt.showmode = false -- do not show the mode, instead have it in statusline
+vim.opt.laststatus = 2 -- per-window statusline (pairs with lualine's globalstatus = false)
 vim.opt.pumheight = 10 -- popup menu height
 vim.opt.pumblend = 10 -- popup menu transparency
 vim.opt.winblend = 0 -- floating window transparency
@@ -105,153 +112,6 @@ vim.opt.wildmode = "longest:full,full" -- complete longest common match, full co
 vim.opt.diffopt:append("linematch:60") -- improve diff display
 vim.opt.redrawtime = 10000 -- increase neovim redraw tolerance
 vim.opt.maxmempattern = 20000 -- increase max memory
-
--- ============================================================================
--- STATUSLINE
--- ============================================================================
-
--- Git branch function with caching and Nerd Font icon
-local cached_branch = ""
-local last_check = 0
-local function git_branch()
-	local now = vim.uv.now()
-	if now - last_check > 5000 then -- Check every 5 seconds
-		cached_branch = vim.fn.system("git branch --show-current 2>/dev/null | tr -d '\n'")
-		last_check = now
-	end
-	if cached_branch ~= "" then
-		return " \u{e725} " .. cached_branch .. " " -- nf-dev-git_branch
-	end
-	return ""
-end
-
--- File type with Nerd Font icon
-local function file_type()
-	local ft = vim.bo.filetype
-	local icons = {
-		lua = "\u{e620} ", -- nf-dev-lua
-		python = "\u{e73c} ", -- nf-dev-python
-		javascript = "\u{e74e} ", -- nf-dev-javascript
-		typescript = "\u{e628} ", -- nf-dev-typescript
-		javascriptreact = "\u{e7ba} ",
-		typescriptreact = "\u{e7ba} ",
-		html = "\u{e736} ", -- nf-dev-html5
-		css = "\u{e749} ", -- nf-dev-css3
-		scss = "\u{e749} ",
-		json = "\u{e60b} ", -- nf-dev-json
-		markdown = "\u{e73e} ", -- nf-dev-markdown
-		vim = "\u{e62b} ", -- nf-dev-vim
-		sh = "\u{f489} ", -- nf-oct-terminal
-		bash = "\u{f489} ",
-		zsh = "\u{f489} ",
-		rust = "\u{e7a8} ", -- nf-dev-rust
-		go = "\u{e724} ", -- nf-dev-go
-		c = "\u{e61e} ", -- nf-dev-c
-		cpp = "\u{e61d} ", -- nf-dev-cplusplus
-		java = "\u{e738} ", -- nf-dev-java
-		php = "\u{e73d} ", -- nf-dev-php
-		ruby = "\u{e739} ", -- nf-dev-ruby
-		swift = "\u{e755} ", -- nf-dev-swift
-		kotlin = "\u{e634} ",
-		dart = "\u{e798} ",
-		elixir = "\u{e62d} ",
-		haskell = "\u{e777} ",
-		sql = "\u{e706} ",
-		yaml = "\u{f481} ",
-		toml = "\u{e615} ",
-		xml = "\u{f05c} ",
-		dockerfile = "\u{f308} ", -- nf-linux-docker
-		gitcommit = "\u{f418} ", -- nf-oct-git_commit
-		gitconfig = "\u{f1d3} ", -- nf-fa-git
-		vue = "\u{fd42} ", -- nf-md-vuejs
-		svelte = "\u{e697} ",
-		astro = "\u{e628} ",
-	}
-
-	if ft == "" then
-		return " \u{f15b} " -- nf-fa-file_o
-	end
-
-	return ((icons[ft] or " \u{f15b} ") .. ft)
-end
-
--- File size with Nerd Font icon
-local function file_size()
-	local size = vim.fn.getfsize(vim.fn.expand("%"))
-	if size < 0 then
-		return ""
-	end
-	local size_str
-	if size < 1024 then
-		size_str = size .. "B"
-	elseif size < 1024 * 1024 then
-		size_str = string.format("%.1fK", size / 1024)
-	else
-		size_str = string.format("%.1fM", size / 1024 / 1024)
-	end
-	return " \u{f016} " .. size_str .. " " -- nf-fa-file_o
-end
-
--- Mode indicators with Nerd Font icons
-local function mode_icon()
-	local mode = vim.fn.mode()
-	local modes = {
-		n = " \u{f121}  NORMAL",
-		i = " \u{f11c}  INSERT",
-		v = " \u{f0168} VISUAL",
-		V = " \u{f0168} V-LINE",
-		["\22"] = " \u{f0168} V-BLOCK",
-		c = " \u{f120} COMMAND",
-		s = " \u{f0c5} SELECT",
-		S = " \u{f0c5} S-LINE",
-		["\19"] = " \u{f0c5} S-BLOCK",
-		R = " \u{f044} REPLACE",
-		r = " \u{f044} REPLACE",
-		["!"] = " \u{f489} SHELL",
-		t = " \u{f120} TERMINAL",
-	}
-	return modes[mode] or (" \u{f059} " .. mode)
-end
-
-_G.mode_icon = mode_icon
-_G.git_branch = git_branch
-_G.file_type = file_type
-_G.file_size = file_size
-
-vim.cmd([[
-  highlight StatusLineBold gui=bold cterm=bold
-]])
-
--- Function to change statusline based on window focus
-local function setup_dynamic_statusline()
-	vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
-		callback = function()
-			vim.opt_local.statusline = table.concat({
-				"  ",
-				"%#StatusLineBold#",
-				"%{v:lua.mode_icon()}",
-				"%#StatusLine#",
-				" \u{e0b1} %f %h%m%r", -- nf-pl-left_hard_divider
-				"%{v:lua.git_branch()}",
-				"\u{e0b1} ", -- nf-pl-left_hard_divider
-				"%{v:lua.file_type()}",
-				"\u{e0b1} ", -- nf-pl-left_hard_divider
-				"%{v:lua.file_size()}",
-				"%=", -- Right-align everything after this
-				" \u{f017} %l:%c  %P ", -- nf-fa-clock_o for line/col
-			})
-		end,
-	})
-	vim.api.nvim_set_hl(0, "StatusLineBold", { bold = true })
-
-	vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
-		callback = function()
-			vim.opt_local.statusline = "  %f %h%m%r \u{e0b1} %{v:lua.file_type()} %=  %l:%c   %P "
-		end,
-	})
-end
-
-setup_dynamic_statusline()
 
 -- ============================================================================
 -- KEYMAPS
@@ -419,6 +279,7 @@ vim.api.nvim_create_autocmd("FileType", {
 -- ============================================================================
 vim.pack.add({
 	"https://www.github.com/echasnovski/mini.nvim",
+	"https://github.com/nvim-lualine/lualine.nvim",
 	"https://www.github.com/ibhagwan/fzf-lua",
 	"https://www.github.com/nvim-tree/nvim-tree.lua",
 	{
@@ -426,15 +287,19 @@ vim.pack.add({
 		branch = "main",
 		build = ":TSUpdate",
 	},
+	"https://github.com/JoosepAlviste/nvim-ts-context-commentstring",
 	-- Language Server Protocols
 	"https://www.github.com/neovim/nvim-lspconfig",
 	"https://github.com/mason-org/mason.nvim",
 	"https://github.com/creativenull/efmls-configs-nvim",
 	{
+		-- NOTE: blink.cmp v2 is now the actively developed branch (breaking
+		-- changes vs v1). Staying pinned to v1 here deliberately for stability.
+		-- Revisit this pin when ready to migrate — v2 requires installing
+		-- blink.lib as a native dependency outside vim.pack.
 		src = "https://github.com/saghen/blink.cmp",
 		version = vim.version.range("1.*"),
 	},
-	"https://github.com/L3MON4D3/LuaSnip",
 	"https://github.com/obsidian-nvim/obsidian.nvim",
 	"https://github.com/mrcjkb/rustaceanvim",
 	"https://github.com/christoomey/vim-tmux-navigator",
@@ -494,6 +359,12 @@ local setup_treesitter = function()
 end
 
 setup_treesitter()
+
+-- treesitter-aware comment strings (correct comment syntax inside embedded
+-- regions, e.g. JS inside JSX/Vue/Svelte) — mini.comment picks this up below
+require("ts_context_commentstring").setup({
+	enable_autocmd = false,
+})
 
 local function get_notes_path()
   local os_release = vim.fn.system("cat /etc/os-release")
@@ -571,7 +442,13 @@ vim.keymap.set("n", "<leader>fX", function()
 end, { desc = "FZF Diagnostics Workspace" })
 
 require("mini.ai").setup({})
-require("mini.comment").setup({})
+require("mini.comment").setup({
+	options = {
+		custom_commentstring = function()
+			return require("ts_context_commentstring.internal").calculate_commentstring() or vim.bo.commentstring
+		end,
+	},
+})
 require("mini.move").setup({})
 require("mini.surround").setup({})
 require("mini.cursorword").setup({})
@@ -581,6 +458,62 @@ require("mini.trailspace").setup({})
 require("mini.bufremove").setup({})
 require("mini.notify").setup({})
 require("mini.icons").setup({})
+
+-- statusline: theme "auto" pulls colors straight from melange's highlight
+-- groups (no dedicated melange lualine theme exists, so this generates one)
+require("lualine").setup({
+	options = {
+		theme = "auto",
+		icons_enabled = true,
+		component_separators = { left = "", right = "" },
+		section_separators = { left = "", right = "" },
+		globalstatus = false, -- keep per-window active/inactive styling
+	},
+	sections = {
+		lualine_a = { "mode" },
+		lualine_b = { { "branch", icon = "\u{e725}" } }, -- nf-dev-git_branch
+		lualine_c = { { "filename", path = 0 } },
+		lualine_x = {
+			function()
+				local size = vim.fn.getfsize(vim.fn.expand("%"))
+				if size < 0 then
+					return ""
+				elseif size < 1024 then
+					return size .. "B"
+				elseif size < 1024 * 1024 then
+					return string.format("%.1fK", size / 1024)
+				else
+					return string.format("%.1fM", size / 1024 / 1024)
+				end
+			end,
+			{ "filetype", icon_only = false },
+		},
+		lualine_y = { "location" }, -- %l:%c equivalent
+		lualine_z = { "progress" }, -- %P equivalent
+	},
+	inactive_sections = {
+		lualine_c = { { "filename", path = 0 } },
+		lualine_x = { "filetype" },
+	},
+})
+
+-- shows available keymaps as you type a prefix (e.g. <leader>) — useful
+-- given how many custom <leader> mappings this config defines
+require("mini.clue").setup({
+	triggers = {
+		{ mode = "n", keys = "<Leader>" },
+		{ mode = "x", keys = "<Leader>" },
+		{ mode = "n", keys = "g" },
+		{ mode = "n", keys = "[" },
+		{ mode = "n", keys = "]" },
+	},
+	clues = {
+		require("mini.clue").gen_clues.builtin_completion(),
+	},
+})
+
+-- restore buffers/window layout per-project on relaunch
+require("mini.sessions").setup({})
 
 require("mini.diff").setup({
 	view = {
@@ -744,12 +677,10 @@ require("blink.cmp").setup({
 			end,
 		},
 	},
+	-- signature help while typing function calls (was previously unset)
+	signature = { enabled = true },
 	sources = { default = { "lsp", "path", "buffer", "snippets" } },
-	snippets = {
-		expand = function(snippet)
-			require("luasnip").lsp_expand(snippet)
-		end,
-	},
+	-- snippets now use blink's native engine — LuaSnip dependency removed
 	fuzzy = {
 		implementation = "prefer_rust",
 		prebuilt_binaries = { download = true },
@@ -784,8 +715,8 @@ do
 	local luacheck = require("efmls-configs.linters.luacheck")
 	local stylua = require("efmls-configs.formatters.stylua")
 
-	local flake8 = require("efmls-configs.linters.flake8")
-	local black = require("efmls-configs.formatters.black")
+	local ruff_lint = require("efmls-configs.linters.ruff")
+	local ruff_format = require("efmls-configs.formatters.ruff")
 
 	local prettier_d = require("efmls-configs.formatters.prettier_d")
 	local eslint_d = require("efmls-configs.linters.eslint_d")
@@ -835,7 +766,7 @@ do
 				jsonc = { eslint_d, fixjson },
 				lua = { luacheck, stylua },
 				markdown = { prettier_d },
-				python = { flake8, black },
+				python = { ruff_lint, ruff_format },
 				sh = { shellcheck, shfmt },
 				typescript = { eslint_d, prettier_d },
 				typescriptreact = { eslint_d, prettier_d },
