@@ -1,0 +1,43 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  startup:
+    runs-on: ubuntu-latest
+    env:
+      NVIM_VERSION: v0.12.6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Neovim
+        run: |
+          curl -fsSL "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz" | tar xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Fresh install + startup (no errors allowed)
+        # Neovim exits 0 even when init.lua throws, so check the output for errors instead.
+        # Clean XDG dirs = a first-time user: plugins install from the lockfile, then the
+        # whole config runs. vim.v.errmsg is not used because nvim-tree always leaves a
+        # harmless "E216 FileExplorer" there.
+        run: |
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/config" XDG_DATA_HOME="$RUNNER_TEMP/data" \
+                 XDG_STATE_HOME="$RUNNER_TEMP/state" XDG_CACHE_HOME="$RUNNER_TEMP/cache"
+          mkdir -p "$XDG_CONFIG_HOME/nvim"
+          cp init.lua nvim-pack-lock.json "$XDG_CONFIG_HOME/nvim/"
+          nvim --headless +qa! 2>&1 | tee startup.log
+          if grep -Eq "Error in |Error detected while processing|E5113|E5108|stack traceback" startup.log; then
+            echo "::error file=init.lua::Neovim reported errors during startup (see log above)"
+            exit 1
+          fi
+          echo "Startup OK"
+
+      - name: LSP attach + format-on-save
+        # Installs lua-language-server, efm and stylua via Mason, opens a Lua file, and
+        # checks that lua_ls and efm both attach and that saving formats it with stylua.
+        run: |
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/config" XDG_DATA_HOME="$RUNNER_TEMP/data" \
+                 XDG_STATE_HOME="$RUNNER_TEMP/state" XDG_CACHE_HOME="$RUNNER_TEMP/cache"
+          nvim --headless -c "luafile .github/ci/lsp-check.lua"
