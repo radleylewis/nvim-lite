@@ -26,9 +26,18 @@ local function set_transparent() -- set UI component to transparent
 		vim.api.nvim_set_hl(0, g, { bg = "none" })
 	end
 	vim.api.nvim_set_hl(0, "TabLineFill", { bg = "none", fg = "#767676" })
+
+	-- nvim-tree
+	vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "none" })
+	vim.api.nvim_set_hl(0, "NvimTreeNormalNC", { bg = "none" })
+	vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = "none" })
+	vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { bg = "none" })
+	vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = "#2a2a2a", bg = "none" })
 end
 
 set_transparent()
+-- re-apply after any colorscheme change (:colorscheme resets highlight groups)
+vim.api.nvim_create_autocmd("ColorScheme", { callback = set_transparent })
 
 -- ============================================================================
 -- OPTIONS
@@ -45,56 +54,36 @@ vim.opt.shiftwidth = 2 -- indent width
 vim.opt.softtabstop = 2 -- soft tab stop not tabs on tab/backspace
 vim.opt.expandtab = true -- use spaces instead of tabs
 vim.opt.smartindent = true -- smart auto-indent
-vim.opt.autoindent = true -- copy indent from current line
 
 vim.opt.ignorecase = true -- case insensitive search
 vim.opt.smartcase = true -- case sensitive if uppercase in string
-vim.opt.hlsearch = true -- highlight search matches
-vim.opt.incsearch = true -- show matches as you type
 
 vim.opt.signcolumn = "yes" -- always show a sign column
 vim.opt.colorcolumn = "100" -- show a column at 100 position chars
 vim.opt.showmatch = true -- highlights matching brackets
-vim.opt.cmdheight = 1 -- single line command line
 vim.opt.completeopt = "menuone,noinsert,noselect" -- completion options
 vim.opt.showmode = false -- do not show the mode, instead have it in statusline
-vim.opt.laststatus = 2 -- per-window statusline (pairs with lualine's globalstatus = false)
 vim.opt.pumheight = 10 -- popup menu height
 vim.opt.pumblend = 10 -- popup menu transparency
-vim.opt.winblend = 0 -- floating window transparency
 vim.opt.conceallevel = 2 -- obsidian requirement
 vim.opt.concealcursor = "" -- do not hide cursorline in markup
 vim.opt.synmaxcol = 300 -- syntax highlighting limit
 vim.opt.fillchars = { eob = " " } -- hide "~" on empty lines
 
-local undodir = vim.fn.expand("~/.vim/undodir")
-if
-	vim.fn.isdirectory(undodir) == 0 -- create undodir if nonexistent
-then
-	vim.fn.mkdir(undodir, "p")
-end
-
 vim.opt.backup = false -- do not create a backup file
 vim.opt.writebackup = false -- do not write to a backup file
 vim.opt.swapfile = false -- do not create a swapfile
-vim.opt.undofile = true -- do create an undo file
-vim.opt.undodir = undodir -- set the undo directory
+vim.opt.undofile = true -- persistent undo, stored in Neovim's default ~/.local/state/nvim/undo/
 vim.opt.updatetime = 300 -- faster completion
 vim.opt.timeoutlen = 500 -- timeout duration
 vim.opt.ttimeoutlen = 50 -- key code timeout
-vim.opt.autoread = true -- auto-reload changes if outside of neovim
-vim.opt.autowrite = false -- do not auto-save
+-- (hidden buffers, autoread, hlsearch/incsearch, autoindent, backspace, etc. are already Neovim defaults)
 
-vim.opt.hidden = true -- allow hidden buffers
-vim.opt.errorbells = false -- no error sounds
-vim.opt.backspace = "indent,eol,start" -- better backspace behaviour
-vim.opt.autochdir = false -- do not autochange directories
-vim.opt.iskeyword:append("-") -- include - in words
+-- (no global iskeyword+=-: it made `w`/`ciw` treat `a-b` as one word in code;
+-- CSS/SCSS/Lisp ftplugins already add `-` where it is part of identifiers)
 vim.opt.path:append("**") -- include subdirs in search
-vim.opt.selection = "inclusive" -- include last char in selection
 vim.opt.mouse = "a" -- enable mouse support
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard
-vim.opt.modifiable = true -- allow buffer modifications
 
 vim.opt.guicursor =
 	"n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175" -- cursor blinking and settings
@@ -127,7 +116,8 @@ vim.keymap.set("n", "k", function()
 	return vim.v.count == 0 and "gk" or "k"
 end, { expr = true, silent = true, desc = "Up (wrap-aware)" })
 
-vim.keymap.set("n", "<leader>c", ":nohlsearch<CR>", { desc = "Clear search highlights" })
+-- on <Esc> rather than <leader>c, which made <leader>ca (code action) wait for a second key
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR><Esc>", { desc = "Clear search highlights" })
 
 vim.keymap.set("n", "n", "nzzzv", { desc = "Next search result (centered)" })
 vim.keymap.set("n", "N", "Nzzzv", { desc = "Previous search result (centered)" })
@@ -152,11 +142,6 @@ vim.keymap.set("n", "<C-Down>", ":resize -2<CR>", { desc = "Decrease window heig
 vim.keymap.set("n", "<C-Left>", ":vertical resize -2<CR>", { desc = "Decrease window width" })
 vim.keymap.set("n", "<C-Right>", ":vertical resize +2<CR>", { desc = "Increase window width" })
 
-vim.keymap.set("n", "<A-j>", ":m .+1<CR>==", { desc = "Move line down" })
-vim.keymap.set("n", "<A-k>", ":m .-2<CR>==", { desc = "Move line up" })
-vim.keymap.set("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
-vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
-
 vim.keymap.set("v", "<", "<gv", { desc = "Indent left and reselect" })
 vim.keymap.set("v", ">", ">gv", { desc = "Indent right and reselect" })
 
@@ -168,7 +153,8 @@ vim.keymap.set("n", "<leader>pa", function() -- show file path
 	print("file:", path)
 end, { desc = "Copy full file path" })
 
-vim.keymap.set("n", "<leader>td", function()
+-- toggle diagnostics
+vim.keymap.set("n", "<leader>ud", function()
 	vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end, { desc = "Toggle diagnostics" })
 
@@ -181,29 +167,15 @@ local augroup = vim.api.nvim_create_augroup("UserConfig", { clear = true })
 -- Format on save (ONLY real file buffers, ONLY when efm is attached)
 vim.api.nvim_create_autocmd("BufWritePre", {
 	group = augroup,
-	pattern = {
-		"*.lua",
-		"*.py",
-		"*.go",
-		"*.js",
-		"*.jsx",
-		"*.ts",
-		"*.tsx",
-		"*.json",
-		"*.css",
-		"*.scss",
-		"*.html",
-		"*.sh",
-		"*.bash",
-		"*.zsh",
-		"*.c",
-		"*.cpp",
-		"*.h",
-		"*.hpp",
-	},
+	-- no filename pattern: runs for every buffer, and formats whenever efm is attached,
+	-- so the efm `languages` table below is the single source of truth
 	callback = function(args)
 		-- avoid formatting non-file buffers (helps prevent weird write prompts)
 		if vim.bo[args.buf].buftype ~= "" then
+			return
+		end
+		-- markdown is formatted manually only (prettier would rewrite notes on every save)
+		if vim.bo[args.buf].filetype == "markdown" then
 			return
 		end
 		if not vim.bo[args.buf].modifiable then
@@ -277,6 +249,23 @@ vim.api.nvim_create_autocmd("FileType", {
 -- ============================================================================
 -- PLUGINS (vim.pack)
 -- ============================================================================
+
+-- vim.pack has no `build` field (specs only keep src/name/version/data), so post-update
+-- steps go in a PackChanged hook. Must be defined before vim.pack.add() to see installs.
+vim.api.nvim_create_autocmd("PackChanged", {
+	group = augroup,
+	callback = function(ev)
+		local name, kind = ev.data.spec.name, ev.data.kind
+		-- recompile parsers after nvim-treesitter updates (parser versions are tied to it)
+		if name == "nvim-treesitter" and kind == "update" then
+			if not ev.data.active then
+				vim.cmd.packadd("nvim-treesitter")
+			end
+			vim.cmd("TSUpdate")
+		end
+	end,
+})
+
 vim.pack.add({
 	"https://www.github.com/echasnovski/mini.nvim",
 	"https://github.com/nvim-lualine/lualine.nvim",
@@ -284,8 +273,7 @@ vim.pack.add({
 	"https://www.github.com/nvim-tree/nvim-tree.lua",
 	{
 		src = "https://github.com/nvim-treesitter/nvim-treesitter",
-		branch = "main",
-		build = ":TSUpdate",
+		version = "main",
 	},
 	"https://github.com/JoosepAlviste/nvim-ts-context-commentstring",
 	-- Language Server Protocols
@@ -293,10 +281,7 @@ vim.pack.add({
 	"https://github.com/mason-org/mason.nvim",
 	"https://github.com/creativenull/efmls-configs-nvim",
 	{
-		-- NOTE: blink.cmp v2 is now the actively developed branch (breaking
-		-- changes vs v1). Staying pinned to v1 here deliberately for stability.
-		-- Revisit this pin when ready to migrate — v2 requires installing
-		-- blink.lib as a native dependency outside vim.pack.
+		-- Pinned to v1 until v2 released
 		src = "https://github.com/saghen/blink.cmp",
 		version = vim.version.range("1.*"),
 	},
@@ -331,6 +316,9 @@ local setup_treesitter = function()
 		"vue",
 		"svelte",
 		"bash",
+		"tsx",
+		"yaml",
+		"dockerfile",
 	}
 
 	local config = require("nvim-treesitter.config")
@@ -367,37 +355,82 @@ require("ts_context_commentstring").setup({
 	enable_autocmd = false,
 })
 
+-- returns nil on unknown systems so obsidian is skipped instead of erroring out of the whole config
 local function get_notes_path()
-  local os_release = vim.fn.system("cat /etc/os-release")
-  if os_release:match("Artix") then
-    return vim.fn.expand("~/Documents/Notes")
-  elseif os_release:match("Ubuntu") then
-    return "/mnt/c/Users/Rad/Documents/Notes"
-  else
-    error("Unsupported OS: no notes path configured")
-  end
+	local f = io.open("/etc/os-release", "r")
+	local os_release = f and f:read("*a") or ""
+	if f then
+		f:close()
+	end
+	if os_release:match("Artix") then
+		return vim.fn.expand("~/Documents/Notes")
+	elseif os_release:match("Ubuntu") then
+		-- WSL: find the Notes folder under whichever Windows user has one (no hard-coded username)
+		return vim.fn.glob("/mnt/c/Users/*/Documents/Notes", false, true)[1]
+	end
+	return nil
 end
 
-local function setup_obsidian()
-  require("obsidian").setup({
-    legacy_commands = false,
-    workspaces = { { name = "Notes", path = get_notes_path() } },
-    picker = { name = "fzf-lua" },
-  })
+-- obsidian.nvim is lazy-loaded (it was ~20ms of every startup): it is set up the first
+-- time a markdown buffer opens or a <leader>n* key is pressed. Returns false if unavailable.
+local obsidian_loaded = false
+local function load_obsidian()
+	if obsidian_loaded then
+		return true
+	end
+	local notes_path = get_notes_path()
+	if not notes_path then
+		vim.notify("obsidian.nvim: no Notes folder found for this system, skipping", vim.log.levels.WARN)
+		return false
+	end
 
-  vim.keymap.set("n", "<leader>nn", function()
-    vim.cmd("Obsidian workspace")
-    vim.defer_fn(function()
-      vim.cmd("Obsidian new")
-    end, 500)
-  end, { desc = "New note" })
-  vim.keymap.set("n", "<leader>nf", "<cmd>Obsidian quick_switch<cr>", { desc = "Find note" })
-  vim.keymap.set("n", "<leader>ns", "<cmd>Obsidian search<cr>",       { desc = "Search notes" })
-  vim.keymap.set("n", "<leader>nt", "<cmd>Obsidian today<cr>",        { desc = "Today's daily note" })
-  vim.keymap.set("n", "<leader>nw", "<cmd>Obsidian workspace<cr>",    { desc = "Switch workspace" })
+	require("obsidian").setup({
+		legacy_commands = false,
+		workspaces = { { name = "Notes", path = notes_path } },
+		picker = { name = "fzf-lua" },
+	})
+	obsidian_loaded = true
+
+	-- obsidian attaches to markdown buffers via its own FileType/BufEnter autocmds, which were
+	-- created just now and so missed buffers that are already open: replay them for those.
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype == "markdown" then
+			vim.api.nvim_exec_autocmds("FileType", { group = "obsidian_setup", buffer = buf, modeline = false })
+			vim.api.nvim_buf_call(buf, function()
+				vim.api.nvim_exec_autocmds("BufEnter", { group = "obsidian_setup", buffer = buf, modeline = false })
+			end)
+		end
+	end
+	return true
 end
 
-setup_obsidian()
+vim.api.nvim_create_autocmd("FileType", {
+	group = augroup,
+	pattern = "markdown",
+	once = true,
+	callback = function()
+		vim.schedule(load_obsidian) -- after the buffer has finished loading
+	end,
+})
+
+-- each <leader>n* key loads obsidian first, then runs the command
+local function obsidian_cmd(...)
+	local cmds = { ... }
+	return function()
+		if load_obsidian() then
+			for _, c in ipairs(cmds) do
+				vim.cmd(c)
+			end
+		end
+	end
+end
+
+-- "workspace Notes" switches by name (synchronous), so no fixed delay is needed before "new"
+vim.keymap.set("n", "<leader>nn", obsidian_cmd("Obsidian workspace Notes", "Obsidian new"), { desc = "New note" })
+vim.keymap.set("n", "<leader>nf", obsidian_cmd("Obsidian quick_switch"), { desc = "Find note" })
+vim.keymap.set("n", "<leader>ns", obsidian_cmd("Obsidian search"), { desc = "Search notes" })
+vim.keymap.set("n", "<leader>nt", obsidian_cmd("Obsidian today"), { desc = "Today's daily note" })
+vim.keymap.set("n", "<leader>nw", obsidian_cmd("Obsidian workspace"), { desc = "Switch workspace" })
 
 require("nvim-tree").setup({
 	view = {
@@ -414,14 +447,8 @@ vim.keymap.set("n", "<leader>e", function()
 	require("nvim-tree.api").tree.toggle()
 end, { desc = "Toggle NvimTree" })
 
-vim.api.nvim_set_hl(0, "NvimTreeNormalNC", { bg = "none" })
-vim.api.nvim_set_hl(0, "SignColumn", { bg = "none" })
-vim.api.nvim_set_hl(0, "NvimTreeSignColumn", { bg = "none" })
-vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "none" })
-vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = "#2a2a2a", bg = "none" })
-vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { bg = "none" })
-
-require("fzf-lua").setup({})
+-- no require("fzf-lua").setup({}): it is optional with default options, and skipping it
+-- means fzf-lua only loads (~13ms) the first time one of the keys below is used
 
 vim.keymap.set("n", "<leader>ff", function()
 	require("fzf-lua").files()
@@ -513,8 +540,63 @@ require("mini.clue").setup({
 	},
 })
 
--- restore buffers/window layout per-project on relaunch
-require("mini.sessions").setup({})
+-- restore buffers/window layout per-project on relaunch:
+-- `nvim` with no file arguments restores the last session for the current directory,
+-- and the session is saved on exit. Sessions live in stdpath("data")/session, not in projects.
+local MiniSessions = require("mini.sessions")
+-- autowrite off: the VimLeavePre autocmd below does the saving (mini's own autowrite
+-- would write the same session a second time and print a message on every exit)
+MiniSessions.setup({ autowrite = false })
+-- don't save terminals, empty buffers or option values (stale options/maps would override init.lua)
+vim.opt.sessionoptions = { "buffers", "curdir", "folds", "tabpages", "winsize" }
+
+local function project_session_name()
+	return (vim.fn.getcwd():gsub("/", "%%"))
+end
+
+-- RESTORE: runs once Neovim has finished starting up.
+-- If you launched plain `nvim` (no files) and this directory has a saved session, reopen it.
+vim.api.nvim_create_autocmd("VimEnter", {
+	group = augroup,
+	nested = true, -- so filetype/LSP autocmds fire for restored buffers
+	callback = function()
+		if vim.fn.argc() == 0 and MiniSessions.detected[project_session_name()] then
+			MiniSessions.read(project_session_name(), { verbose = false })
+		end
+	end,
+})
+
+-- SAVE: VimLeavePre runs just before Neovim exits (:q, :qa, ZZ, ...), while every
+-- window and buffer still exists, which is the last moment the layout can be recorded.
+-- It saves the open buffers and splits as this directory's session so the VimEnter
+-- autocmd above can restore them next time.
+-- Skipped when:
+--   * nvim was opened with files (`nvim foo.lua`), a one-off edit that shouldn't
+--     overwrite the project's session
+--   * no real file is open (e.g. you opened nvim and quit straight away), which would
+--     otherwise replace a good session with an empty one
+vim.api.nvim_create_autocmd("VimLeavePre", {
+	group = augroup,
+	callback = function()
+		if vim.fn.argc() ~= 0 then
+			return
+		end
+		local has_file = false
+		for _, b in ipairs(vim.api.nvim_list_bufs()) do
+			if vim.bo[b].buflisted and vim.bo[b].buftype == "" and vim.api.nvim_buf_get_name(b) ~= "" then
+				has_file = true
+				break
+			end
+		end
+		if not has_file then
+			return
+		end
+		pcall(function()
+			require("nvim-tree.api").tree.close() -- tree windows don't restore cleanly
+		end)
+		MiniSessions.write(project_session_name(), { verbose = false })
+	end,
+})
 
 require("mini.diff").setup({
 	view = {
@@ -532,7 +614,8 @@ end, { desc = "Next git hunk" })
 vim.keymap.set("n", "[h", function()
 	MiniDiff.goto_hunk("prev")
 end, { desc = "Prev git hunk" })
-vim.keymap.set("n", "<leader>hs", MiniDiff.operator, { desc = "Stage hunk" })
+-- gh = mini.diff "apply" operator (stages with the git source), second gh = hunk textobject
+vim.keymap.set("n", "<leader>hs", "ghgh", { remap = true, desc = "Stage hunk under cursor" })
 vim.keymap.set("n", "<leader>hp", function()
 	MiniDiff.toggle_overlay()
 end, { desc = "Preview diff overlay" })
@@ -575,14 +658,8 @@ vim.diagnostic.config({
 	},
 })
 
-do
-	local orig = vim.lsp.util.open_floating_preview
-	function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
-		opts = opts or {}
-		opts.border = opts.border or "rounded"
-		return orig(contents, syntax, opts, ...)
-	end
-end
+-- default border for all floating windows (LSP hover/signature, completion menu, etc.)
+vim.o.winborder = "rounded"
 
 local function lsp_on_attach(ev)
 	local client = vim.lsp.get_client_by_id(ev.data.client_id)
@@ -609,7 +686,7 @@ local function lsp_on_attach(ev)
 
 	vim.keymap.set("n", "<leader>D", function()
 		vim.diagnostic.open_float({ scope = "line" })
-	end, opts)
+	end, opts) -- (a global <leader>dl did the same thing and made <leader>d wait; removed)
 	vim.keymap.set("n", "<leader>d", function()
 		vim.diagnostic.open_float({ scope = "cursor" })
 	end, opts)
@@ -658,9 +735,9 @@ vim.api.nvim_create_autocmd("LspAttach", { group = augroup, callback = lsp_on_at
 vim.keymap.set("n", "<leader>q", function()
 	vim.diagnostic.setloclist({ open = true })
 end, { desc = "Open diagnostic list" })
-vim.keymap.set("n", "<leader>dl", vim.diagnostic.open_float, { desc = "Show line diagnostics" })
 
-require("blink.cmp").setup({
+local blink = require("blink.cmp")
+blink.setup({
 	keymap = {
 		preset = "none",
 		["<C-Space>"] = { "show", "hide" },
@@ -689,7 +766,7 @@ require("blink.cmp").setup({
 })
 
 vim.lsp.config["*"] = {
-	capabilities = require("blink.cmp").get_lsp_capabilities(),
+	capabilities = blink.get_lsp_capabilities(),
 }
 
 vim.lsp.config("lua_ls", {
@@ -705,16 +782,35 @@ vim.lsp.config("bashls", {})
 vim.lsp.config("ts_ls", {})
 vim.lsp.config("gopls", {})
 vim.lsp.config("clangd", {})
-vim.lsp.config("omnisharp", {})
+vim.lsp.config("jsonls", {})
+vim.lsp.config("yamlls", {})
+vim.lsp.config("docker_language_server", {})
+vim.lsp.config("emmet_language_server", {})
+vim.lsp.config("tailwindcss", {
+	-- only attach in projects that actually use Tailwind: a tailwind.config.* file, or
+	-- tailwindcss in package.json (covers v4). The default also matches any .git root,
+	-- so it attached to every HTML/JS/TS file in every repo.
+	root_dir = function(bufnr, on_dir)
+		local fname = vim.api.nvim_buf_get_name(bufnr)
+		local markers = require("lspconfig.util").insert_package_json(
+			{ "tailwind.config.js", "tailwind.config.cjs", "tailwind.config.mjs", "tailwind.config.ts" },
+			"tailwindcss",
+			fname
+		)
+		local found = vim.fs.find(markers, { path = fname, upward = true })[1]
+		if found then
+			on_dir(vim.fs.dirname(found))
+		end
+	end,
+})
 
 vim.g.rustaceanvim = {
 	server = {
-		capabilities = require("blink.cmp").get_lsp_capabilities(),
+		capabilities = blink.get_lsp_capabilities(),
 	},
 }
 
 do
-	local luacheck = require("efmls-configs.linters.luacheck")
 	local stylua = require("efmls-configs.formatters.stylua")
 
 	local ruff_lint = require("efmls-configs.linters.ruff")
@@ -734,11 +830,14 @@ do
 	local go_revive = require("efmls-configs.linters.go_revive")
 	local gofumpt = require("efmls-configs.formatters.gofumpt")
 
+	local hadolint = require("efmls-configs.linters.hadolint")
+
 	vim.lsp.config("efm", {
 		filetypes = {
 			"c",
 			"cpp",
 			"css",
+			"dockerfile",
 			"go",
 			"html",
 			"javascript",
@@ -761,12 +860,13 @@ do
 				go = { gofumpt, go_revive },
 				cpp = { clangfmt, cpplint },
 				css = { prettier_d },
+				dockerfile = { hadolint },
 				html = { prettier_d },
 				javascript = { eslint_d, prettier_d },
 				javascriptreact = { eslint_d, prettier_d },
-				json = { eslint_d, fixjson },
-				jsonc = { eslint_d, fixjson },
-				lua = { luacheck, stylua },
+				json = { fixjson }, -- diagnostics come from jsonls
+				jsonc = { prettier_d }, -- not fixjson: it strips comments
+				lua = { stylua }, -- linting comes from lua_ls
 				markdown = { prettier_d },
 				python = { ruff_lint, ruff_format },
 				sh = { shellcheck, shfmt },
@@ -786,7 +886,11 @@ vim.lsp.enable({
 	"ts_ls",
 	"gopls",
 	"clangd",
-	"omnisharp",
+	"jsonls",
+	"yamlls",
+	"docker_language_server",
+	"emmet_language_server",
+	"tailwindcss",
 	"efm",
 })
 
@@ -795,9 +899,9 @@ vim.lsp.enable({
 -- ============================================================================
 vim.api.nvim_create_autocmd("TermClose", {
 	group = augroup,
-	callback = function()
-		if vim.v.event.status == 0 then
-			vim.api.nvim_buf_delete(0, {})
+	callback = function(args)
+		if vim.v.event.status == 0 and vim.api.nvim_buf_is_valid(args.buf) then
+			vim.api.nvim_buf_delete(args.buf, { force = true })
 		end
 	end,
 })
@@ -847,7 +951,7 @@ local function FloatingTerminal()
 
 	local has_terminal = vim.bo[terminal_state.buf].buftype == "terminal"
 	if not has_terminal then
-		vim.fn.termopen(os.getenv("SHELL"))
+		vim.fn.jobstart(vim.o.shell, { term = true })
 	end
 
 	terminal_state.is_open = true
@@ -868,7 +972,8 @@ local function FloatingTerminal()
 end
 
 vim.keymap.set("n", "<leader>t", FloatingTerminal, { noremap = true, silent = true, desc = "Toggle floating terminal" })
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true, desc = "Terminal normal mode" })
+-- double <Esc> so a single <Esc> still reaches the shell (zsh-vi-mode uses it for normal mode)
+vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { noremap = true, silent = true, desc = "Terminal normal mode" })
 vim.keymap.set("t", "<C-q>", function()
 	if terminal_state.is_open and terminal_state.win and vim.api.nvim_win_is_valid(terminal_state.win) then
 		vim.api.nvim_win_close(terminal_state.win, false)
