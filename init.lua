@@ -153,7 +153,7 @@ vim.keymap.set("n", "<leader>pa", function() -- show file path
 	print("file:", path)
 end, { desc = "Copy full file path" })
 
--- <leader>u* = UI toggles (was <leader>td, which made <leader>t (terminal) wait for a second key)
+-- toggle diagnostics
 vim.keymap.set("n", "<leader>ud", function()
 	vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end, { desc = "Toggle diagnostics" })
@@ -273,7 +273,7 @@ vim.pack.add({
 	"https://www.github.com/nvim-tree/nvim-tree.lua",
 	{
 		src = "https://github.com/nvim-treesitter/nvim-treesitter",
-		version = "main", -- `version` is how vim.pack selects a branch (`branch` is ignored)
+		version = "main",
 	},
 	"https://github.com/JoosepAlviste/nvim-ts-context-commentstring",
 	-- Language Server Protocols
@@ -281,10 +281,7 @@ vim.pack.add({
 	"https://github.com/mason-org/mason.nvim",
 	"https://github.com/creativenull/efmls-configs-nvim",
 	{
-		-- Pinned to v1: v1 releases ship prebuilt Rust fuzzy-matcher binaries, which are
-		-- downloaded automatically. v2 has no release yet, so it would need compiling the
-		-- matcher with cargo (~4 min) after every update. Move to v2 once it is released
-		-- (it then also needs "https://github.com/saghen/blink.lib" and drops prebuilt_binaries).
+		-- Pinned to v1 until v2 released
 		src = "https://github.com/saghen/blink.cmp",
 		version = vim.version.range("1.*"),
 	},
@@ -360,72 +357,72 @@ require("ts_context_commentstring").setup({
 
 -- returns nil on unknown systems so obsidian is skipped instead of erroring out of the whole config
 local function get_notes_path()
-  local f = io.open("/etc/os-release", "r")
-  local os_release = f and f:read("*a") or ""
-  if f then
-    f:close()
-  end
-  if os_release:match("Artix") then
-    return vim.fn.expand("~/Documents/Notes")
-  elseif os_release:match("Ubuntu") then
-    -- WSL: find the Notes folder under whichever Windows user has one (no hard-coded username)
-    return vim.fn.glob("/mnt/c/Users/*/Documents/Notes", false, true)[1]
-  end
-  return nil
+	local f = io.open("/etc/os-release", "r")
+	local os_release = f and f:read("*a") or ""
+	if f then
+		f:close()
+	end
+	if os_release:match("Artix") then
+		return vim.fn.expand("~/Documents/Notes")
+	elseif os_release:match("Ubuntu") then
+		-- WSL: find the Notes folder under whichever Windows user has one (no hard-coded username)
+		return vim.fn.glob("/mnt/c/Users/*/Documents/Notes", false, true)[1]
+	end
+	return nil
 end
 
 -- obsidian.nvim is lazy-loaded (it was ~20ms of every startup): it is set up the first
 -- time a markdown buffer opens or a <leader>n* key is pressed. Returns false if unavailable.
 local obsidian_loaded = false
 local function load_obsidian()
-  if obsidian_loaded then
-    return true
-  end
-  local notes_path = get_notes_path()
-  if not notes_path then
-    vim.notify("obsidian.nvim: no Notes folder found for this system, skipping", vim.log.levels.WARN)
-    return false
-  end
+	if obsidian_loaded then
+		return true
+	end
+	local notes_path = get_notes_path()
+	if not notes_path then
+		vim.notify("obsidian.nvim: no Notes folder found for this system, skipping", vim.log.levels.WARN)
+		return false
+	end
 
-  require("obsidian").setup({
-    legacy_commands = false,
-    workspaces = { { name = "Notes", path = notes_path } },
-    picker = { name = "fzf-lua" },
-  })
-  obsidian_loaded = true
+	require("obsidian").setup({
+		legacy_commands = false,
+		workspaces = { { name = "Notes", path = notes_path } },
+		picker = { name = "fzf-lua" },
+	})
+	obsidian_loaded = true
 
-  -- obsidian attaches to markdown buffers via its own FileType/BufEnter autocmds, which were
-  -- created just now and so missed buffers that are already open: replay them for those.
-  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype == "markdown" then
-      vim.api.nvim_exec_autocmds("FileType", { group = "obsidian_setup", buffer = buf, modeline = false })
-      vim.api.nvim_buf_call(buf, function()
-        vim.api.nvim_exec_autocmds("BufEnter", { group = "obsidian_setup", buffer = buf, modeline = false })
-      end)
-    end
-  end
-  return true
+	-- obsidian attaches to markdown buffers via its own FileType/BufEnter autocmds, which were
+	-- created just now and so missed buffers that are already open: replay them for those.
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype == "markdown" then
+			vim.api.nvim_exec_autocmds("FileType", { group = "obsidian_setup", buffer = buf, modeline = false })
+			vim.api.nvim_buf_call(buf, function()
+				vim.api.nvim_exec_autocmds("BufEnter", { group = "obsidian_setup", buffer = buf, modeline = false })
+			end)
+		end
+	end
+	return true
 end
 
 vim.api.nvim_create_autocmd("FileType", {
-  group = augroup,
-  pattern = "markdown",
-  once = true,
-  callback = function()
-    vim.schedule(load_obsidian) -- after the buffer has finished loading
-  end,
+	group = augroup,
+	pattern = "markdown",
+	once = true,
+	callback = function()
+		vim.schedule(load_obsidian) -- after the buffer has finished loading
+	end,
 })
 
 -- each <leader>n* key loads obsidian first, then runs the command
 local function obsidian_cmd(...)
-  local cmds = { ... }
-  return function()
-    if load_obsidian() then
-      for _, c in ipairs(cmds) do
-        vim.cmd(c)
-      end
-    end
-  end
+	local cmds = { ... }
+	return function()
+		if load_obsidian() then
+			for _, c in ipairs(cmds) do
+				vim.cmd(c)
+			end
+		end
+	end
 end
 
 -- "workspace Notes" switches by name (synchronous), so no fixed delay is needed before "new"
